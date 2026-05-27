@@ -25,11 +25,13 @@
     "@televerse/db": "workspace:*",
     "@televerse/shared": "workspace:*",
     "@televerse/types": "workspace:*",
+    "drizzle-orm": "^0.32.0",
     "fastify": "^4.28.0",
     "gramjs": "npm:telegram@^2.26.22",
     "groq-sdk": "^0.7.0",
     "ioredis": "^5.4.0",
     "p-limit": "^6.1.0",
+    "postgres": "^3.4.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {

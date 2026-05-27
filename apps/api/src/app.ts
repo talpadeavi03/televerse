@@ -19,13 +19,14 @@ import { wsRoutes } from './routes/ws.js'
 import { telegramRoutes } from './routes/telegram.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { env } from './config/env.js'
+import { getRedis } from './config/redis.js'
 
 export async function buildApp() {
   const app = Fastify({
     logger: {
       level: env.NODE_ENV === 'production' ? 'warn' : 'info',
       transport:
-        env.NODE_ENV !== 'production'
+        env.NODE_ENV === 'development'
           ? { target: 'pino-pretty', options: { colorize: true } }
           : undefined,
     },
@@ -47,7 +48,7 @@ export async function buildApp() {
   await app.register(rateLimit, {
     max: 100,
     timeWindow: '1 minute',
-    redis: { url: env.REDIS_URL },
+    redis: env.NODE_ENV === 'test' ? undefined : getRedis(),
     keyGenerator: (req) => req.ip,
     errorResponseBuilder: () => ({
       error: 'Too Many Requests',
