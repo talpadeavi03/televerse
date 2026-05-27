@@ -1,0 +1,37 @@
+{
+  "name": "televerse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TeleVerse — Telegram-powered cloud file manager",
+  "scripts": {
+    "dev": "pnpm --parallel --filter './apps/*' run dev",
+    "build": "pnpm --filter './apps/*' run build",
+    "lint": "pnpm --recursive run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "test": "pnpm --recursive run test",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "db:migrate": "pnpm --filter @televerse/api run db:migrate",
+    "prepare": "husky"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "husky": "^9.1.0",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.3.0",
+    "typescript": "^5.5.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": ["eslint --fix", "prettier --write"],
+    "*.{json,md,css}": ["prettier --write"]
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.4.0"
+}

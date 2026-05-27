@@ -1,0 +1,29 @@
+{
+  "name": "@televerse/sdk",
+  "version": "1.0.0",
+  "description": "Official TeleVerse JavaScript SDK",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch"
+  },
+  "dependencies": {
+    "@televerse/types": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.1.0"
+  },
+  "peerDependencies": {
+    "node-fetch": "^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "node-fetch": { "optional": true }
+  }
+}

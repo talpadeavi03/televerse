@@ -1,0 +1,42 @@
+{
+  "name": "@televerse/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest run",
+    "db:migrate": "drizzle-kit migrate --config ../../packages/db/drizzle.config.ts",
+    "db:studio": "drizzle-kit studio --config ../../packages/db/drizzle.config.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^9.0.0",
+    "@fastify/helmet": "^11.1.0",
+    "@fastify/jwt": "^8.0.0",
+    "@fastify/multipart": "^8.3.0",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/swagger": "^8.14.0",
+    "@fastify/swagger-ui": "^4.0.0",
+    "@fastify/websocket": "^8.3.0",
+    "@televerse/db": "workspace:*",
+    "@televerse/shared": "workspace:*",
+    "@televerse/types": "workspace:*",
+    "fastify": "^4.28.0",
+    "gramjs": "^2.26.0",
+    "groq-sdk": "^0.7.0",
+    "ioredis": "^5.4.0",
+    "p-limit": "^6.1.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "drizzle-kit": "^0.23.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  }
+}
