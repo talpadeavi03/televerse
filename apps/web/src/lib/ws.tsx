@@ -4,7 +4,21 @@ import { useEffect, useRef } from 'react'
 import { useAuthStore } from '@/stores/auth'
 import type { WSEvent } from '@televerse/types'
 
-const WS_URL = process.env['NEXT_PUBLIC_WS_URL'] ?? 'ws://localhost:4000'
+const getWsUrl = () => {
+  if (process.env['NEXT_PUBLIC_WS_URL']) {
+    return process.env['NEXT_PUBLIC_WS_URL']
+  }
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'ws://localhost:4000'
+    }
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    return `${protocol}//${window.location.host}`
+  }
+  return 'ws://localhost:4000'
+}
+
+const WS_URL = getWsUrl()
 
 type EventHandler = (event: WSEvent) => void
 

@@ -1,6 +1,19 @@
 import { useAuthStore } from '@/stores/auth'
 
-const BASE_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:4000'
+const getApiUrl = () => {
+  if (process.env['NEXT_PUBLIC_API_URL']) {
+    return process.env['NEXT_PUBLIC_API_URL']
+  }
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:4000'
+    }
+    return window.location.origin
+  }
+  return 'http://localhost:4000'
+}
+
+export const BASE_URL = getApiUrl()
 
 class ApiClient {
   private async request<T>(

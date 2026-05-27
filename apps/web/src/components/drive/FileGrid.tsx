@@ -3,7 +3,7 @@
 import { Download, Trash2, Share2, MoreVertical, FileText, Image, Video, Music, Package, FileCode, FileIcon, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import type { TeleFile } from '@televerse/types'
-import { api } from '@/lib/api'
+import { api, BASE_URL } from '@/lib/api'
 import { formatBytes } from '@/lib/utils'
 
 const MIME_ICONS: Record<string, typeof FileIcon> = {
@@ -56,7 +56,7 @@ export function FileGrid({
 
   async function handleDownload(file: TeleFile) {
     const a = document.createElement('a')
-    a.href = `${process.env['NEXT_PUBLIC_API_URL']}/v1/files/${file.id}/download`
+    a.href = `${BASE_URL}/v1/files/${file.id}/download`
     a.download = file.name
     document.body.appendChild(a)
     a.click()
