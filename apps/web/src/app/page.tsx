@@ -107,7 +107,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/10 px-6 py-6 text-center text-sm text-gray-500">
-        <p>TeleVerse uses the Telegram MTProto Client API — legally permitted by Telegram's Terms of Service.</p>
+        <p>TeleVerse uses the Telegram MTProto Client API — legally permitted by Telegram&apos;s Terms of Service.</p>
         <p className="mt-1">Built with ❤️ | MIT License</p>
       </footer>
     </main>
