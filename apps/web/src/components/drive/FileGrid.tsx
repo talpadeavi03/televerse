@@ -95,7 +95,7 @@ export function FileGrid({
         {files.map((file) => {
           const Icon = getIcon(file.mimeType)
           return (
-            <div key={file.id} className="file-row grid grid-cols-12 gap-4 px-4">
+            <div key={file.id} className="file-row group grid grid-cols-12 gap-4 px-4">
               {/* Name */}
               <div className="col-span-6 flex items-center gap-3 min-w-0">
                 <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">

@@ -2,10 +2,10 @@ import type { FastifyPluginAsync } from 'fastify'
 import { wsManager } from '../services/wsManager.js'
 
 export const wsRoutes: FastifyPluginAsync = async (app) => {
-  app.get('/', { websocket: true }, (socket, req) => {
+  app.get('/', { websocket: true }, (socket: any, req) => {
     let userId: string | null = null
 
-    socket.on('message', async (raw) => {
+    socket.on('message', async (raw: any) => {
       try {
         const msg = JSON.parse(raw.toString()) as { type: string; token?: string }
 

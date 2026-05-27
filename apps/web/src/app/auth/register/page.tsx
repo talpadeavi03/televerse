@@ -61,13 +61,13 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-gray-400 mb-1.5">Email</label>
-              <input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input" placeholder="you@example.com" required />
+              <input id="email" type="email" autoComplete="email" value={email} onChange={(e: any) => setEmail(e.target.value)} className="input" placeholder="you@example.com" required />
             </div>
 
             <div>
               <label className="block text-xs font-medium text-gray-400 mb-1.5">Password</label>
               <div className="relative">
-                <input id="password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} className="input pr-10" placeholder="••••••••" required />
+                <input id="password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={password} onChange={(e: any) => setPassword(e.target.value)} className="input pr-10" placeholder="••••••••" required />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>

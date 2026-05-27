@@ -59,7 +59,11 @@ export const telegramRoutes: FastifyPluginAsync = async (app) => {
   // GET /v1/telegram/status
   app.get('/status', { preHandler: authenticate }, async (req) => {
     const payload = req.user as { sub: string }
-    const [user] = await db.select({ telegramUserId: users.telegramUserId, telegramPhone: users.telegramPhone })
+    const [user] = await db.select({
+      telegramUserId: users.telegramUserId,
+      telegramPhone: users.telegramPhone,
+      telegramSessionEncrypted: users.telegramSessionEncrypted,
+    })
       .from(users).where(eq(users.id, payload.sub)).limit(1)
     return { data: { connected: !!user?.telegramSessionEncrypted, telegramUserId: user?.telegramUserId?.toString() } }
   })

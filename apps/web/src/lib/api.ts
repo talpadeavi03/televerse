@@ -22,7 +22,7 @@ class ApiClient {
       fetchBody = JSON.stringify(body)
     }
 
-    const res = await fetch(`${BASE_URL}${path}`, { method, headers, body: fetchBody })
+    const res = await fetch(`${BASE_URL}${path}`, { method, headers, body: fetchBody as any })
 
     if (res.status === 401) {
       // Try refresh

@@ -79,7 +79,7 @@
 
   .file-row {
     @apply flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 cursor-pointer
-           transition-colors duration-150 group;
+           transition-colors duration-150;
   }
 
   .badge {

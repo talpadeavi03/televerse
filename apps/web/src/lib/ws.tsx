@@ -68,7 +68,9 @@ export function useWS(type: string, handler: EventHandler) {
 
   useEffect(() => {
     const off = wsClient.on(type, (e) => handlerRef.current(e))
-    return off
+    return () => {
+      off()
+    }
   }, [type])
 }
 

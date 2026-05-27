@@ -50,7 +50,10 @@ export const folders = pgTable(
     icon: text('icon'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
-  (t) => [index('idx_folders_user_id').on(t.userId), index('idx_folders_parent_id').on(t.parentId)],
+  (t) => ({
+    idxFoldersUserId: index('idx_folders_user_id').on(t.userId),
+    idxFoldersParentId: index('idx_folders_parent_id').on(t.parentId),
+  }),
 )
 
 export const files = pgTable(
@@ -73,12 +76,12 @@ export const files = pgTable(
     isShared: boolean('is_shared').default(false),
     version: integer('version').default(1),
   },
-  (t) => [
-    index('idx_files_user_id').on(t.userId),
-    index('idx_files_folder_id').on(t.folderId),
-    index('idx_files_hash').on(t.sha256Hash),
-    index('idx_files_uploaded_at').on(t.uploadedAt),
-  ],
+  (t) => ({
+    idxFilesUserId: index('idx_files_user_id').on(t.userId),
+    idxFilesFolderId: index('idx_files_folder_id').on(t.folderId),
+    idxFilesHash: index('idx_files_hash').on(t.sha256Hash),
+    idxFilesUploadedAt: index('idx_files_uploaded_at').on(t.uploadedAt),
+  }),
 )
 
 export const aiMetadata = pgTable('ai_metadata', {
@@ -104,11 +107,13 @@ export const sharedLinks = pgTable(
     token: text('token').notNull(),
     passwordHash: text('password_hash'),
     expiresAt: timestamp('expires_at', { withTimezone: true }),
-    downloadCount: integer('download_count').default(0),
+    downloadCount: integer('download_count').default(0).notNull(),
     maxDownloads: integer('max_downloads'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
-  (t) => [unique('unique_shared_link_token').on(t.token)],
+  (t) => ({
+    uniqueSharedLinkToken: unique('unique_shared_link_token').on(t.token),
+  }),
 )
 
 export const oauthApps = pgTable(
@@ -125,7 +130,9 @@ export const oauthApps = pgTable(
     scopes: text('scopes').array(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
-  (t) => [unique('unique_oauth_client_id').on(t.clientId)],
+  (t) => ({
+    uniqueOauthClientId: unique('unique_oauth_client_id').on(t.clientId),
+  }),
 )
 
 export const oauthTokens = pgTable('oauth_tokens', {

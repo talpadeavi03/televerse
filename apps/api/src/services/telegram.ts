@@ -55,16 +55,16 @@ export class TelegramService {
 
     try {
       if (params.password) {
-        await client.signInWithPassword(
+        await (client as any).signInWithPassword(
           { apiId: env.TG_API_ID, apiHash: env.TG_API_HASH },
           { password: async () => params.password! },
         )
       } else {
-        await client.signIn({ apiId: env.TG_API_ID, apiHash: env.TG_API_HASH }, {
+        await (client as any).signIn({ apiId: env.TG_API_ID, apiHash: env.TG_API_HASH }, {
           phoneNumber: params.phone,
           phoneCode: async () => params.code,
           password: async () => { throw new Error('2FA required') },
-          onError: (err) => { throw err },
+          onError: (err: any) => { throw err },
         })
       }
     } catch (err: unknown) {
@@ -81,7 +81,7 @@ export class TelegramService {
     pendingSessions.delete(params.sessionId)
     await client.disconnect()
 
-    return { telegramUserId: (me as { id: bigint }).id.toString(), encryptedSession }
+    return { telegramUserId: (me as any).id.toString(), encryptedSession }
   }
 
   private async getClient(encryptedSession: string): Promise<TelegramClient> {
@@ -121,9 +121,9 @@ export class TelegramService {
           limit(() =>
             withRetry(async () => {
               if (isBig) {
-                await client.invoke(new Api.upload.SaveBigFilePart({ fileId, filePart: i, fileTotalParts: totalParts, bytes: part }))
+                await client.invoke(new Api.upload.SaveBigFilePart({ fileId: fileId as any, filePart: i, fileTotalParts: totalParts, bytes: part }))
               } else {
-                await client.invoke(new Api.upload.SaveFilePart({ fileId, filePart: i, bytes: part }))
+                await client.invoke(new Api.upload.SaveFilePart({ fileId: fileId as any, filePart: i, bytes: part }))
               }
               uploadedParts++
               opts.onProgress?.({
@@ -143,8 +143,8 @@ export class TelegramService {
       )
 
       const inputFile = isBig
-        ? new Api.InputFileBig({ id: fileId, parts: totalParts, name: opts.filename })
-        : new Api.InputFile({ id: fileId, parts: totalParts, name: opts.filename, md5Checksum: '' })
+        ? new Api.InputFileBig({ id: fileId as any, parts: totalParts, name: opts.filename })
+        : new Api.InputFile({ id: fileId as any, parts: totalParts, name: opts.filename, md5Checksum: '' })
 
       const result = await client.invoke(new Api.messages.SendMedia({
         peer: new Api.InputPeerSelf(),
@@ -154,7 +154,7 @@ export class TelegramService {
           attributes: [new Api.DocumentAttributeFilename({ fileName: opts.filename })],
         }),
         message: opts.filename,
-        randomId: BigInt(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)),
+        randomId: BigInt(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)) as any,
       }))
 
       const updates = result as Api.Updates
@@ -171,7 +171,7 @@ export class TelegramService {
     const client = await this.getClient(encryptedSession)
     // GramJS streams the file — wrap in a Readable
     const buffer = await client.downloadMedia(
-      new Api.InputMessageID({ id: Number(messageId) }),
+      new Api.InputMessageID({ id: Number(messageId) }) as any,
       {},
     ) as Buffer
     await client.disconnect()
@@ -183,7 +183,7 @@ export class TelegramService {
   async downloadToBuffer(encryptedSession: string, messageId: bigint): Promise<Buffer> {
     const client = await this.getClient(encryptedSession)
     const buffer = await client.downloadMedia(
-      new Api.InputMessageID({ id: Number(messageId) }),
+      new Api.InputMessageID({ id: Number(messageId) }) as any,
       {},
     ) as Buffer
     await client.disconnect()

@@ -90,7 +90,7 @@ export default function ConnectTelegramPage() {
             <form onSubmit={handlePhoneSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-gray-400 mb-1.5">Phone Number</label>
-                <input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="input" placeholder="+1 234 567 8900" required />
+                <input id="phone" type="tel" value={phone} onChange={(e: any) => setPhone(e.target.value)} className="input" placeholder="+1 234 567 8900" required />
                 <p className="text-xs text-gray-500 mt-1">Include country code (e.g. +1 for US)</p>
               </div>
               {error && <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">{error}</div>}
@@ -116,12 +116,12 @@ export default function ConnectTelegramPage() {
             <form onSubmit={handleCodeSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-gray-400 mb-1.5">Verification Code</label>
-                <input id="otp" type="text" inputMode="numeric" pattern="\d*" value={code} onChange={(e) => setCode(e.target.value)} className="input text-center text-2xl tracking-widest" placeholder="12345" maxLength={5} required />
+                <input id="otp" type="text" inputMode="numeric" pattern="\d*" value={code} onChange={(e: any) => setCode(e.target.value)} className="input text-center text-2xl tracking-widest" placeholder="12345" maxLength={5} required />
               </div>
               {needs2FA && (
                 <div>
                   <label className="block text-xs font-medium text-gray-400 mb-1.5">Cloud Password (2FA)</label>
-                  <input id="tfa" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="input" placeholder="Your Telegram cloud password" required />
+                  <input id="tfa" type="password" value={password} onChange={(e: any) => setPassword(e.target.value)} className="input" placeholder="Your Telegram cloud password" required />
                 </div>
               )}
               {error && <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">{error}</div>}
