@@ -26,7 +26,7 @@
     "@televerse/shared": "workspace:*",
     "@televerse/types": "workspace:*",
     "fastify": "^4.28.0",
-    "gramjs": "^2.26.0",
+    "gramjs": "npm:telegram@^2.26.22",
     "groq-sdk": "^0.7.0",
     "ioredis": "^5.4.0",
     "p-limit": "^6.1.0",
