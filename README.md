@@ -1,3 +1,13 @@
+---
+title: TeleVerse
+emoji: 🌌
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # TeleVerse
 > Telegram-powered cloud file manager — store unlimited files in your own Telegram account
 
