@@ -28,7 +28,7 @@ if [ ! -s "$DB_DIR/PG_VERSION" ]; then
 fi
 
 echo "Starting Postgres server..."
-pg_ctl -D "$DB_DIR" -h 127.0.0.1 -l /tmp/postgres.log start
+pg_ctl -D "$DB_DIR" -o "-h 127.0.0.1" -l /tmp/postgres.log start
 
 # Wait for postgres to be ready (up to 15 seconds)
 echo "Waiting for Postgres to start..."
