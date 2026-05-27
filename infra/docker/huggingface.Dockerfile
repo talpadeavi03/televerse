@@ -6,7 +6,7 @@ RUN apk add --no-cache postgresql postgresql-contrib redis nginx
 
 # Compile pgvector extension from source
 RUN apk add --no-cache --virtual .build-deps git make gcc musl-dev clang-dev llvm-dev postgresql-dev && \
-    git clone --branch v0.7.0 https://github.com/pgvector/pgvector.git && \
+    git clone https://github.com/pgvector/pgvector.git && \
     cd pgvector && \
     make && \
     make install && \
