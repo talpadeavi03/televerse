@@ -5,9 +5,11 @@ FROM base AS builder
 WORKDIR /app
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
 COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
 COPY packages/types/package.json ./packages/types/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/db/package.json ./packages/db/
+COPY packages/sdk/package.json ./packages/sdk/
 RUN pnpm install --frozen-lockfile
 
 COPY tsconfig.json ./
@@ -21,7 +23,7 @@ ENV NODE_ENV=production
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/package.json ./apps/api/
-COPY --from=builder /app/packages/*/dist ./packages/
+COPY --from=builder /app/packages ./packages
 
 EXPOSE 4000
 CMD ["node", "apps/api/dist/server.js"]

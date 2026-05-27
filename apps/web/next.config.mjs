@@ -2,6 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@televerse/types'],
+  output: 'standalone',
   eslint: {
     ignoreDuringBuilds: true,
   },
