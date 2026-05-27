@@ -30,6 +30,7 @@
     "gramjs": "npm:telegram@^2.26.22",
     "groq-sdk": "^0.7.0",
     "ioredis": "^5.4.0",
+    "openai": "^6.39.0",
     "p-limit": "^6.1.0",
     "postgres": "^3.4.0",
     "ws": "^8.17.0",

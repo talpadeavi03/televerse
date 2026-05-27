@@ -1,4 +1,5 @@
 import Groq from 'groq-sdk'
+import OpenAI from 'openai'
 import { getDb, aiMetadata, files } from '@televerse/db'
 import { eq, sql } from 'drizzle-orm'
 import { env } from '../config/env.js'
@@ -33,8 +34,19 @@ function getFileCategory(mimeType: string): string {
 }
 
 export class AIService {
-  private groq = new Groq({ apiKey: env.GROQ_API_KEY })
+  private client: OpenAI | Groq
+  private modelName: string
   private db = getDb()
+
+  constructor() {
+    if (env.OPENAI_API_KEY) {
+      this.client = new OpenAI({ apiKey: env.OPENAI_API_KEY })
+      this.modelName = 'gpt-4o-mini'
+    } else {
+      this.client = new Groq({ apiKey: env.GROQ_API_KEY! })
+      this.modelName = 'llama-3.3-70b-versatile'
+    }
+  }
 
   async generateSummary(
     fileId: string,
@@ -48,8 +60,8 @@ export class AIService {
       const text = extractText(buffer, mimeType)
       if (text.length > 50) {
         try {
-          const resp = await this.groq.chat.completions.create({
-            model: 'llama-3.3-70b-versatile',
+          const resp = await (this.client.chat.completions as any).create({
+            model: this.modelName,
             messages: [
               { role: 'system', content: 'You are a concise file summarizer. Always respond with valid JSON.' },
               {
@@ -110,8 +122,8 @@ export class AIService {
       .map((f, i) => `File: ${f.name}\nSummary: ${summaries[i]?.summary ?? 'No summary'}\nTags: ${summaries[i]?.tags?.join(', ') ?? 'none'}`)
       .join('\n\n')
 
-    const stream = await this.groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+    const stream = await (this.client.chat.completions as any).create({
+      model: this.modelName,
       stream: true,
       messages: [
         { role: 'system', content: 'You are an AI assistant analyzing files. Answer questions based on the file context provided.' },
