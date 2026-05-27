@@ -1,0 +1,1 @@
+# Keep this directory in git so that Next.js standalone Docker builds always find the public folder.
