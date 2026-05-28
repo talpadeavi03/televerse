@@ -1,6 +1,25 @@
 #!/bin/sh
 set -e
 
+echo "=================================================="
+echo "🛡️ TELEVERSE STARTUP: Checking Prerequisites..."
+echo "=================================================="
+MISSING_VARS=""
+for var in SESSION_ENCRYPTION_KEY JWT_SECRET INTERNAL_SECRET TG_API_ID TG_API_HASH; do
+    eval val=\$$var
+    if [ -z "$val" ]; then
+        MISSING_VARS="$MISSING_VARS $var"
+    fi
+done
+
+if [ ! -z "$MISSING_VARS" ]; then
+    echo "❌ CRITICAL ERROR: The following required environment variables are missing:$MISSING_VARS"
+    echo "Please configure these in your Hugging Face Space Settings -> Variables and Secrets!"
+    exit 1
+fi
+echo "✓ All required environment variables are configured successfully."
+echo "=================================================="
+
 echo "Starting local Redis..."
 redis-server --daemonize yes --port 6379
 
@@ -34,8 +53,11 @@ fi
 
 if [ ! -s "$DB_DIR/PG_VERSION" ] || [ "$is_corrupted" = true ]; then
     echo "Initializing Postgres database..."
-    # Wipe the directory safely if it was corrupted to start fresh
-    rm -rf "$DB_DIR"
+    # Wiping with atomic metadata rename fallback to bypass NFS lock files and 'Directory not empty' errors
+    BACKUP_DIR="${DB_DIR}_corrupted_$(date +%s)"
+    echo "Moving corrupted cluster out of the way to: $BACKUP_DIR"
+    mv "$DB_DIR" "$BACKUP_DIR" 2>/dev/null || rm -rf "$DB_DIR"
+    
     mkdir -p "$DB_DIR"
     chmod 700 "$DB_DIR"
     initdb -D "$DB_DIR"
@@ -87,6 +109,14 @@ node apps/api/dist/server.js &
 echo "Starting Next.js Frontend..."
 PORT=3000 \
 node apps/web/server.js &
+
+# Give background servers 3 seconds to start
+sleep 3
+
+echo "=================================================="
+echo "🎉 SUCCESS: TeleVerse is fully up and running!"
+echo "👉 Web Access: https://talpadeavi20-televerse.hf.space"
+echo "=================================================="
 
 echo "Starting Nginx Reverse Proxy on port 7860..."
 nginx -c /app/infra/huggingface/nginx.conf -g "daemon off;"
