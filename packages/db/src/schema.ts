@@ -11,7 +11,7 @@ import {
   unique,
   vector,
 } from 'drizzle-orm/pg-core'
-import { relations } from 'drizzle-orm'
+import { relations, sql } from 'drizzle-orm'
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 export const planEnum = pgEnum('plan', ['free', 'pro'])
@@ -31,7 +31,7 @@ export const users = pgTable('users', {
   telegramPhone: text('telegram_phone'),
   telegramUserId: bigint('telegram_user_id', { mode: 'bigint' }),
   telegramSessionEncrypted: text('telegram_session_encrypted'),
-  storageUsedBytes: bigint('storage_used_bytes', { mode: 'bigint' }).default(0),
+  storageUsedBytes: bigint('storage_used_bytes', { mode: 'bigint' }).default(sql`0`),
   plan: planEnum('plan').default('free'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),

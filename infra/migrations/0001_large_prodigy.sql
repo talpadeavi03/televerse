@@ -1,0 +1,1 @@
+ALTER TABLE "users" ALTER COLUMN "storage_used_bytes" SET DEFAULT 0;
