@@ -41,8 +41,8 @@ chmod 700 "$DB_DIR"
 # Initialize DB if not already initialized or if corrupted
 is_corrupted=false
 if [ -d "$DB_DIR" ] && [ -f "$DB_DIR/PG_VERSION" ]; then
-    # Verify critical subdirectories exist
-    for sub in base global pg_notify pg_wal; do
+    # Verify critical subdirectories exist (excluding pg_notify as it is managed dynamically by the daemon)
+    for sub in base global pg_wal; do
         if [ ! -d "$DB_DIR/$sub" ]; then
             echo "⚠ Detected corrupted or incomplete Postgres database cluster (missing $sub). Wiping and re-initializing..."
             is_corrupted=true
