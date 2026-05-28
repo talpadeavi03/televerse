@@ -54,15 +54,20 @@ export class TelegramService {
     const { client } = pending
 
     try {
-      await (client as any).signIn({
-        phoneNumber: params.phone,
-        phoneCodeHash: params.phoneCodeHash,
-        phoneCode: async () => params.code,
-        password: async () => params.password || '',
-        onError: (err: any) => {
-          throw err
-        },
-      })
+      if (params.password) {
+        await (client as any).signInWithPassword(
+          { apiId: env.TG_API_ID, apiHash: env.TG_API_HASH },
+          { password: async () => params.password! }
+        )
+      } else {
+        await client.invoke(
+          new Api.auth.SignIn({
+            phoneNumber: params.phone,
+            phoneCodeHash: params.phoneCodeHash,
+            phoneCode: params.code,
+          })
+        )
+      }
     } catch (err: any) {
       const errMsg = err.message || '';
       if (errMsg.includes('SESSION_PASSWORD_NEEDED')) {
