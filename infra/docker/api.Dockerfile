@@ -26,4 +26,4 @@ COPY --from=builder /app/apps/api/package.json ./apps/api/
 COPY --from=builder /app/packages ./packages
 
 EXPOSE 4000
-CMD ["node", "apps/api/dist/server.js"]
+CMD ["npx", "tsx", "apps/api/src/server.ts"]

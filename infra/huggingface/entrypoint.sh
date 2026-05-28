@@ -103,11 +103,13 @@ echo "Starting Fastify API..."
 DATABASE_URL=postgresql://127.0.0.1:5432/televerse \
 REDIS_URL=redis://127.0.0.1:6379 \
 PORT=4000 \
+HOST=127.0.0.1 \
 NODE_ENV=production \
-node apps/api/dist/server.js &
+npx tsx apps/api/src/server.ts &
 
 echo "Starting Next.js Frontend..."
 PORT=3000 \
+HOSTNAME=127.0.0.1 \
 node apps/web/server.js &
 
 # Give background servers 3 seconds to start
