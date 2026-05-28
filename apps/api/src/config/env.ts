@@ -26,8 +26,7 @@ if (!parsed.success) {
 }
 
 if (!parsed.data.GROQ_API_KEY && !parsed.data.OPENAI_API_KEY) {
-  console.error('❌ Error: Either GROQ_API_KEY or OPENAI_API_KEY must be provided.')
-  process.exit(1)
+  console.warn('⚠️ Warning: Neither GROQ_API_KEY nor OPENAI_API_KEY was provided. AI features will be disabled.')
 }
 
 export const env = parsed.data
