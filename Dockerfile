@@ -35,12 +35,8 @@ RUN pnpm --filter @televerse/api build && \
 FROM base AS runner
 WORKDIR /app
 
-# Copy all node_modules and built bundles
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/apps/api/package.json ./apps/api/
-COPY --from=builder /app/packages ./packages
-COPY --from=builder /app/package.json /app/pnpm-workspace.yaml ./
+# Copy the entire built application with all nested node_modules
+COPY --from=builder /app ./
 
 # Next.js standalone setup
 COPY --from=builder /app/apps/web/public ./apps/web/public
