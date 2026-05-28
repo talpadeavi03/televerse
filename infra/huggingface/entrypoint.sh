@@ -109,12 +109,16 @@ echo "Running migrations..."
 DATABASE_URL=postgresql://127.0.0.1:5432/televerse npx drizzle-kit migrate --config packages/db/drizzle.config.ts || echo "Migrations skipped or already applied"
 
 echo "Starting Fastify API..."
-DATABASE_URL=postgresql://127.0.0.1:5432/televerse \
-REDIS_URL=redis://127.0.0.1:6379 \
-PORT=4000 \
-HOST=0.0.0.0 \
-NODE_ENV=production \
-npx tsx apps/api/src/server.ts > /tmp/api.log 2>&1 &
+# cd into apps/api inside a subshell to ensure tsx resolves packages correctly in the workspace directory context
+(
+  cd apps/api
+  DATABASE_URL=postgresql://127.0.0.1:5432/televerse \
+  REDIS_URL=redis://127.0.0.1:6379 \
+  PORT=4000 \
+  HOST=0.0.0.0 \
+  NODE_ENV=production \
+  npx tsx src/server.ts > /tmp/api.log 2>&1
+) &
 
 echo "Starting Next.js Frontend..."
 PORT=3000 \
