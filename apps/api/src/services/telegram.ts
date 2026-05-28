@@ -168,11 +168,40 @@ export class TelegramService {
         randomId: BigInt(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)) as any,
       }))
 
-      const updates = result as Api.Updates
-      const msgId = (updates.updates?.find((u) => u.className === 'UpdateMessageID') as { id: number } | undefined)?.id
-      if (!msgId) throw new Error('Failed to get message ID after upload')
+      let msgId: number | undefined;
 
-      return msgId
+      if (result) {
+        if (typeof (result as any).id === 'number') {
+          msgId = (result as any).id;
+        } else if ((result as any).updates && Array.isArray((result as any).updates)) {
+          for (const u of (result as any).updates) {
+            if (u.message && typeof u.message.id === 'number') {
+              msgId = u.message.id;
+              break;
+            }
+            if (typeof u.id === 'number') {
+              msgId = u.id;
+              break;
+            }
+          }
+        }
+      }
+
+      if (!msgId) {
+        console.warn('⚠️ Could not extract message ID directly from Updates. Falling back to latest messages check.');
+        try {
+          const messages = await client.getMessages(new Api.InputPeerSelf(), { limit: 1 });
+          if (messages && messages.length > 0) {
+            msgId = messages[0].id;
+          }
+        } catch (e: any) {
+          console.error('Failed to fetch latest messages fallback:', e.message);
+        }
+      }
+
+      if (!msgId) throw new Error('Failed to get message ID after upload');
+
+      return msgId;
     } finally {
       await client.disconnect()
     }
