@@ -54,7 +54,7 @@ export class TelegramService {
     const { client } = pending
 
     try {
-      await client.signIn({
+      await (client as any).signIn({
         phoneNumber: params.phone,
         phoneCodeHash: params.phoneCodeHash,
         phoneCode: async () => params.code,
