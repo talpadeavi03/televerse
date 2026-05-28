@@ -103,22 +103,42 @@ echo "Starting Fastify API..."
 DATABASE_URL=postgresql://127.0.0.1:5432/televerse \
 REDIS_URL=redis://127.0.0.1:6379 \
 PORT=4000 \
-HOST=127.0.0.1 \
+HOST=0.0.0.0 \
 NODE_ENV=production \
-npx tsx apps/api/src/server.ts &
+pnpm --filter @televerse/api start > /tmp/api.log 2>&1 &
 
 echo "Starting Next.js Frontend..."
 PORT=3000 \
-HOSTNAME=127.0.0.1 \
-node apps/web/server.js &
+HOSTNAME=0.0.0.0 \
+node apps/web/server.js > /tmp/web.log 2>&1 &
 
-# Give background servers 3 seconds to start
-sleep 3
+# Give background servers 5 seconds to start
+sleep 5
 
-echo "=================================================="
-echo "🎉 SUCCESS: TeleVerse is fully up and running!"
-echo "👉 Web Access: https://talpadeavi20-televerse.hf.space"
-echo "=================================================="
+echo "Checking backend servers health..."
+api_healthy=true
+web_healthy=true
+
+if ! nc -z 127.0.0.1 4000; then
+  echo "❌ Fastify API failed to start! Printing logs from /tmp/api.log:"
+  cat /tmp/api.log || echo "No API log found"
+  api_healthy=false
+fi
+
+if ! nc -z 127.0.0.1 3000; then
+  echo "❌ Next.js Frontend failed to start! Printing logs from /tmp/web.log:"
+  cat /tmp/web.log || echo "No Web log found"
+  web_healthy=false
+fi
+
+if [ "$api_healthy" = true ] && [ "$web_healthy" = true ]; then
+  echo "=================================================="
+  echo "🎉 SUCCESS: TeleVerse is fully up and running!"
+  echo "👉 Web Access: https://talpadeavi20-televerse.hf.space"
+  echo "=================================================="
+else
+  echo "❌ CRITICAL: One or more backend servers failed to start!"
+fi
 
 echo "Starting Nginx Reverse Proxy on port 7860..."
 nginx -c /app/infra/huggingface/nginx.conf -g "daemon off;"
