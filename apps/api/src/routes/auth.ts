@@ -17,11 +17,18 @@ async function hashPassword(password: string): Promise<string> {
   return `${salt}:${hash.toString('hex')}`
 }
 
-async function verifyPassword(password: string, stored: string): Promise<boolean> {
-  const [salt, hash] = stored.split(':')
-  const derived = await scryptAsync(password, salt!, 64) as Buffer
-  const storedBuf = Buffer.from(hash!, 'hex')
-  return timingSafeEqual(derived, storedBuf)
+export async function verifyPassword(password: string, stored: string): Promise<boolean> {
+  try {
+    if (!stored || !stored.includes(':')) return false
+    const [salt, hash] = stored.split(':')
+    if (!salt || !hash) return false
+    const derived = await scryptAsync(password, salt, 64) as Buffer
+    const storedBuf = Buffer.from(hash, 'hex')
+    if (derived.length !== storedBuf.length) return false
+    return timingSafeEqual(derived, storedBuf)
+  } catch (e) {
+    return false
+  }
 }
 
 const registerSchema = z.object({
