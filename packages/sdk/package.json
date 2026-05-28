@@ -2,6 +2,7 @@
   "name": "@televerse/sdk",
   "version": "1.0.0",
   "description": "Official TeleVerse JavaScript SDK",
+  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

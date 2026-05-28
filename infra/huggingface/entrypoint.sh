@@ -87,14 +87,14 @@ if ! pg_isready -h 127.0.0.1 > /dev/null 2>&1; then
   exit 1
 fi
 
-echo "Setting up database extensions..."
-psql -h 127.0.0.1 -d postgres -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
-psql -h 127.0.0.1 -d postgres -c "CREATE EXTENSION IF NOT EXISTS \"pgcrypto\";"
-psql -h 127.0.0.1 -d postgres -c "CREATE EXTENSION IF NOT EXISTS \"vector\";"
-
 # Create televerse database if missing
 psql -h 127.0.0.1 -d postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'televerse'" | grep -q 1 || \
 psql -h 127.0.0.1 -d postgres -c "CREATE DATABASE televerse;"
+
+echo "Setting up database extensions on televerse..."
+psql -h 127.0.0.1 -d televerse -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
+psql -h 127.0.0.1 -d televerse -c "CREATE EXTENSION IF NOT EXISTS \"pgcrypto\";"
+psql -h 127.0.0.1 -d televerse -c "CREATE EXTENSION IF NOT EXISTS \"vector\";"
 
 echo "Running migrations..."
 DATABASE_URL=postgresql://127.0.0.1:5432/televerse pnpm --filter @televerse/api run db:migrate || echo "Migrations skipped or already applied"
