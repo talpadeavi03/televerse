@@ -35,7 +35,9 @@ fi
 if [ ! -s "$DB_DIR/PG_VERSION" ] || [ "$is_corrupted" = true ]; then
     echo "Initializing Postgres database..."
     # Wipe the directory safely if it was corrupted to start fresh
-    rm -rf "$DB_DIR"/*
+    rm -rf "$DB_DIR"
+    mkdir -p "$DB_DIR"
+    chmod 700 "$DB_DIR"
     initdb -D "$DB_DIR"
     
     # Configure postgres to allow local connections
