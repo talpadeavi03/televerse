@@ -76,16 +76,16 @@ if [ ! -s "$DB_DIR/PG_VERSION" ] || [ "$is_corrupted" = true ]; then
 fi
 
 echo "Starting Postgres server..."
-pg_ctl -D "$DB_DIR" -o "-h 127.0.0.1 -k /tmp" -l /tmp/postgres.log start || {
+pg_ctl -D "$DB_DIR" -w -t 120 -o "-h 127.0.0.1 -k /tmp" -l /tmp/postgres.log start || {
   echo "❌ Postgres failed to start! Printing database logs:"
   cat /tmp/postgres.log
   exit 1
 }
 
-# Wait for postgres to be ready (up to 15 seconds)
+# Wait for postgres to be ready (up to 120 seconds to allow for NFS directory fsync syncs on reboot)
 echo "Waiting for Postgres to start..."
 retries=0
-until pg_isready -h 127.0.0.1 > /dev/null 2>&1 || [ $retries -eq 15 ]; do
+until pg_isready -h 127.0.0.1 > /dev/null 2>&1 || [ $retries -eq 120 ]; do
   sleep 1
   retries=$((retries + 1))
 done
@@ -106,7 +106,7 @@ psql -h 127.0.0.1 -d televerse -c "CREATE EXTENSION IF NOT EXISTS \"pgcrypto\";"
 psql -h 127.0.0.1 -d televerse -c "CREATE EXTENSION IF NOT EXISTS \"vector\";"
 
 echo "Running migrations..."
-DATABASE_URL=postgresql://127.0.0.1:5432/televerse pnpm --filter @televerse/api run db:migrate || echo "Migrations skipped or already applied"
+DATABASE_URL=postgresql://127.0.0.1:5432/televerse npx drizzle-kit migrate --config packages/db/drizzle.config.ts || echo "Migrations skipped or already applied"
 
 echo "Starting Fastify API..."
 DATABASE_URL=postgresql://127.0.0.1:5432/televerse \
@@ -114,7 +114,7 @@ REDIS_URL=redis://127.0.0.1:6379 \
 PORT=4000 \
 HOST=0.0.0.0 \
 NODE_ENV=production \
-pnpm --filter @televerse/api start > /tmp/api.log 2>&1 &
+npx tsx apps/api/src/server.ts > /tmp/api.log 2>&1 &
 
 echo "Starting Next.js Frontend..."
 PORT=3000 \
