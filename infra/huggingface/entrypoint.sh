@@ -75,6 +75,12 @@ if [ ! -s "$DB_DIR/PG_VERSION" ] || [ "$is_corrupted" = true ]; then
     echo "host all all 127.0.0.1/32 trust" >> "$DB_DIR/pg_hba.conf"
 fi
 
+# Proactively clean up any stale postmaster.pid lock file left over from a previous crash/restart to prevent NFS stale file handle issues
+if [ -f "$DB_DIR/postmaster.pid" ]; then
+    echo "🧹 Removing stale postmaster.pid lock file from persistent volume..."
+    rm -f "$DB_DIR/postmaster.pid"
+fi
+
 echo "Starting Postgres server..."
 pg_ctl -D "$DB_DIR" -w -t 120 -o "-h 127.0.0.1 -k /tmp" -l /tmp/postgres.log start || {
   echo "❌ Postgres failed to start! Printing database logs:"
