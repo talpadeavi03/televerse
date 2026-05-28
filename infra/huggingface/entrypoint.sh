@@ -17,6 +17,7 @@ else
 fi
 
 mkdir -p "$DB_DIR"
+chmod 700 "$DB_DIR"
 
 # Initialize DB if not already initialized
 if [ ! -s "$DB_DIR/PG_VERSION" ]; then
