@@ -41,7 +41,7 @@ chmod 700 "$DB_DIR"
 # Initialize DB if not already initialized or if corrupted
 is_corrupted=false
 if [ -d "$DB_DIR" ] && [ -f "$DB_DIR/PG_VERSION" ]; then
-    # Verify critical subdirectories exist (excluding pg_notify as it is managed dynamically by the daemon)
+    # Verify critical structural subdirectories exist
     for sub in base global pg_wal; do
         if [ ! -d "$DB_DIR/$sub" ]; then
             echo "⚠ Detected corrupted or incomplete Postgres database cluster (missing $sub). Wiping and re-initializing..."
@@ -49,6 +49,15 @@ if [ -d "$DB_DIR" ] && [ -f "$DB_DIR/PG_VERSION" ]; then
             break
         fi
     done
+    
+    # If not corrupted, proactively restore all transient folders required by Postgres to boot
+    if [ "$is_corrupted" = false ]; then
+        echo "🔧 Re-creating transient Postgres runtime directories if missing..."
+        for sub in pg_notify pg_tblspc pg_snapshots pg_stat_tmp pg_twophase pg_logical pg_logical/mappings pg_logical/snapshots pg_replslot pg_commit_ts pg_stat pg_dynshmem pg_multixact pg_multixact/members pg_multixact/offsets pg_subtrans pg_xact; do
+            mkdir -p "$DB_DIR/$sub"
+            chmod 700 "$DB_DIR/$sub" 2>/dev/null || true
+        done
+    fi
 fi
 
 if [ ! -s "$DB_DIR/PG_VERSION" ] || [ "$is_corrupted" = true ]; then
