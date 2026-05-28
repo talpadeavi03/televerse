@@ -15,6 +15,8 @@ const getApiUrl = () => {
 
 export const BASE_URL = getApiUrl()
 
+let refreshPromise: Promise<boolean> | null = null
+
 class ApiClient {
   private async request<T>(
     method: string,
@@ -41,15 +43,32 @@ class ApiClient {
       // Try refresh
       const { refreshToken, setAuth, clearAuth } = useAuthStore.getState()
       if (refreshToken) {
-        const refreshRes = await fetch(`${BASE_URL}/v1/auth/refresh`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken }),
-        })
-        if (refreshRes.ok) {
-          const data = await refreshRes.json() as { data: { accessToken: string; refreshToken: string } }
-          const user = useAuthStore.getState().user!
-          setAuth(data.data.accessToken, data.data.refreshToken, user)
+        if (!refreshPromise) {
+          refreshPromise = (async () => {
+            try {
+              const refreshRes = await fetch(`${BASE_URL}/v1/auth/refresh`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refreshToken }),
+              })
+              if (refreshRes.ok) {
+                const data = await refreshRes.json() as { data: { accessToken: string; refreshToken: string } }
+                const user = useAuthStore.getState().user!
+                setAuth(data.data.accessToken, data.data.refreshToken, user)
+                return true
+              }
+            } catch (e) {
+              console.error('Refresh token error:', e)
+            }
+            return false
+          })()
+        }
+
+        const success = await refreshPromise
+        // Reset the promise for future token expiration cycles
+        refreshPromise = null
+
+        if (success) {
           // Retry
           return this.request<T>(method, path, body)
         }

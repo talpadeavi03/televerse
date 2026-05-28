@@ -21,6 +21,11 @@ import { errorHandler } from './middleware/errorHandler.js'
 import { env } from './config/env.js'
 import { getRedis } from './config/redis.js'
 
+// Polyfill JSON.stringify to natively support BigInt serialization to prevent Fastify serialization 500 errors
+;(BigInt.prototype as any).toJSON = function () {
+  return this.toString()
+}
+
 export async function buildApp() {
   const app = Fastify({
     logger: {
