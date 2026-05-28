@@ -53,7 +53,8 @@ Our core design logs, compliance parameters, and test criteria are versioned and
 | [📄 Phase 1 Incident Report](mds/Phase1_Foundation.md) | Full breakdown of baseline architecture and resolved runtime bugs. | DevOps & Systems Engineers |
 | [📄 Phase 1 Tester Guide](mds/Phase1_Tester_Guide.md) | Detailed manual QA scripts, endpoint validations, and database checks. | QA Engineers & Testers |
 | [📄 Phase 2 Design & Spec](mds/Phase2_Implementation.md) | Blueprint for rate limiting, Gemini AI migration, and WebVerse models. | Core Developers |
-| [📄 OpenClaw Integration](mds/OpenClaw_Architecture_Overview.md) | Architecture blueprint for self-healing, E2E QA tests, and model monitors. | Devs, QA, & DevOps Engineers |
+| [📄 Phase 1.1: OpenClaw](mds/Phase1.1_OpenClaw_Integration.md) | Architecture blueprint for dedicated autonomous peer agent on HF Space. | Devs, QA, & DevOps Engineers |
+| [📄 Master System Design](mds/system_design_architecture.md) | Master engineering blueprint for all system schemas, proxies, pipelines, and logs. | Systems & Core Engineers |
 
 ---
 
