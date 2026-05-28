@@ -54,22 +54,28 @@ export class TelegramService {
     const { client } = pending
 
     try {
-      if (params.password) {
-        await (client as any).signInWithPassword(
-          { apiId: env.TG_API_ID, apiHash: env.TG_API_HASH },
-          { password: async () => params.password! },
-        )
-      } else {
-        await (client as any).signIn({ apiId: env.TG_API_ID, apiHash: env.TG_API_HASH }, {
-          phoneNumber: params.phone,
-          phoneCode: async () => params.code,
-          password: async () => { throw new Error('2FA required') },
-          onError: (err: any) => { throw err },
-        })
-      }
-    } catch (err: unknown) {
-      if ((err as Error).message === '2FA required') {
+      await client.signIn({
+        phoneNumber: params.phone,
+        phoneCodeHash: params.phoneCodeHash,
+        phoneCode: async () => params.code,
+        password: async () => params.password || '',
+        onError: (err: any) => {
+          throw err
+        },
+      })
+    } catch (err: any) {
+      const errMsg = err.message || '';
+      if (errMsg.includes('SESSION_PASSWORD_NEEDED')) {
         throw Object.assign(new Error('Two-factor authentication required'), { statusCode: 428, code: 'TFA_REQUIRED' })
+      }
+      if (errMsg.includes('PHONE_CODE_INVALID')) {
+        throw Object.assign(new Error('The verification code is invalid'), { statusCode: 400, code: 'PHONE_CODE_INVALID' })
+      }
+      if (errMsg.includes('PHONE_CODE_EXPIRED')) {
+        throw Object.assign(new Error('The verification code has expired'), { statusCode: 400, code: 'PHONE_CODE_EXPIRED' })
+      }
+      if (errMsg.includes('PASSWORD_HASH_INVALID')) {
+        throw Object.assign(new Error('The 2FA password is incorrect'), { statusCode: 400, code: 'PASSWORD_HASH_INVALID' })
       }
       throw err
     }
