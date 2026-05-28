@@ -19,9 +19,23 @@ fi
 mkdir -p "$DB_DIR"
 chmod 700 "$DB_DIR"
 
-# Initialize DB if not already initialized
-if [ ! -s "$DB_DIR/PG_VERSION" ]; then
+# Initialize DB if not already initialized or if corrupted
+is_corrupted=false
+if [ -d "$DB_DIR" ] && [ -f "$DB_DIR/PG_VERSION" ]; then
+    # Verify critical subdirectories exist
+    for sub in base global pg_notify pg_wal; do
+        if [ ! -d "$DB_DIR/$sub" ]; then
+            echo "⚠ Detected corrupted or incomplete Postgres database cluster (missing $sub). Wiping and re-initializing..."
+            is_corrupted=true
+            break
+        fi
+    done
+fi
+
+if [ ! -s "$DB_DIR/PG_VERSION" ] || [ "$is_corrupted" = true ]; then
     echo "Initializing Postgres database..."
+    # Wipe the directory safely if it was corrupted to start fresh
+    rm -rf "$DB_DIR"/*
     initdb -D "$DB_DIR"
     
     # Configure postgres to allow local connections
