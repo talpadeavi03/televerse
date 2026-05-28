@@ -1,5 +1,8 @@
 # TeleVerse — Phase 2: Design & Implementation Plan
 
+###########imp: when we put multiple files it auto sort and keep in good format condtion so user can retrive files later back easily
+also as the memory of user grows the backend does not crash so strong it can take upto 100 TB ############
+
 This document details the engineering specifications for Phase 2 of TeleVerse. It maps the implementation details of core file operations, establishes the compliance boundaries for Telegram MTProto usage, outlines the migration to a modern AI stack, and specifies the architecture for **WebVerse** (the relational file networking graph).
 
 ---

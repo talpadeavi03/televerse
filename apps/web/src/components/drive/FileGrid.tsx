@@ -5,6 +5,7 @@ import { useState } from 'react'
 import type { TeleFile } from '@televerse/types'
 import { api, BASE_URL } from '@/lib/api'
 import { formatBytes } from '@/lib/utils'
+import { useAuthStore } from '@/stores/auth'
 
 const MIME_ICONS: Record<string, typeof FileIcon> = {
   'image/': Image,
@@ -55,8 +56,9 @@ export function FileGrid({
   }
 
   async function handleDownload(file: TeleFile) {
+    const { accessToken } = useAuthStore.getState()
     const a = document.createElement('a')
-    a.href = `${BASE_URL}/v1/files/${file.id}/download`
+    a.href = `${BASE_URL}/v1/files/${file.id}/download?token=${accessToken}`
     a.download = file.name
     document.body.appendChild(a)
     a.click()
