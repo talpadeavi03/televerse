@@ -81,6 +81,17 @@ if [ -f "$DB_DIR/postmaster.pid" ]; then
     rm -f "$DB_DIR/postmaster.pid"
 fi
 
+# Optimize PostgreSQL performance on NFS mount (turn off fsync to prevent 60s startup freezes)
+if [ -f "$DB_DIR/postgresql.conf" ]; then
+    grep -q "fsync = off" "$DB_DIR/postgresql.conf" || {
+        echo "🔧 Optimizing PostgreSQL parameters for persistent network volume..."
+        echo "fsync = off" >> "$DB_DIR/postgresql.conf"
+        echo "synchronous_commit = off" >> "$DB_DIR/postgresql.conf"
+        echo "full_page_writes = off" >> "$DB_DIR/postgresql.conf"
+        echo "shared_buffers = 128MB" >> "$DB_DIR/postgresql.conf"
+    }
+fi
+
 echo "Starting Postgres server..."
 pg_ctl -D "$DB_DIR" -w -t 120 -o "-h 127.0.0.1 -k /tmp" -l /tmp/postgres.log start || {
   echo "❌ Postgres failed to start! Printing database logs:"
