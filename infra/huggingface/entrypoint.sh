@@ -172,7 +172,7 @@ psql -h 127.0.0.1 -d televerse -c "CREATE EXTENSION IF NOT EXISTS \"pgcrypto\";"
 psql -h 127.0.0.1 -d televerse -c "CREATE EXTENSION IF NOT EXISTS \"vector\";"
 
 echo "Running migrations..."
-DATABASE_URL=postgresql://127.0.0.1:5432/televerse npx drizzle-kit migrate --config packages/db/drizzle.config.ts || echo "Migrations skipped or already applied"
+DATABASE_URL=postgresql://127.0.0.1:5432/televerse pnpm --filter @televerse/api db:migrate
 
 echo "Starting Fastify API..."
 # cd into apps/api inside a subshell to ensure tsx resolves packages correctly in the workspace directory context
