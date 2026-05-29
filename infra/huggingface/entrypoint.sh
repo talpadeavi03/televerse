@@ -93,16 +93,60 @@ if [ -f "$DB_DIR/postgresql.conf" ]; then
 fi
 
 echo "Starting Postgres server..."
-pg_ctl -D "$DB_DIR" -w -t 120 -o "-h 127.0.0.1 -k /tmp" -l /tmp/postgres.log start || {
-  echo "⚠ Postgres failed to start. Attempting to repair corrupted WAL using pg_resetwal..."
-  pg_resetwal -f "$DB_DIR"
-  echo "Retrying Postgres server start after WAL repair..."
-  pg_ctl -D "$DB_DIR" -w -t 120 -o "-h 127.0.0.1 -k /tmp" -l /tmp/postgres.log start || {
-    echo "❌ Postgres failed to start even after WAL repair! Printing database logs:"
-    cat /tmp/postgres.log
-    exit 1
-  }
-}
+# Kill any background postgres processes that could be conflicting
+pkill -9 -f postgres || true
+# Clean up any stale PostgreSQL socket files in /tmp to prevent socket conflicts
+rm -f /tmp/.s.PGSQL.5432 /tmp/.s.PGSQL.5432.lock 2>/dev/null || true
+
+# Try to start Postgres server
+if pg_ctl -D "$DB_DIR" -w -t 120 -o "-h 127.0.0.1 -k /tmp" -l /tmp/postgres.log start; then
+    echo "✓ Postgres started successfully."
+else
+    echo "⚠ Postgres failed to start. Attempting to repair corrupted WAL using pg_resetwal..."
+    pg_resetwal -f "$DB_DIR" || echo "pg_resetwal failed or skipped"
+    
+    echo "Retrying Postgres server start after WAL repair..."
+    if pg_ctl -D "$DB_DIR" -w -t 120 -o "-h 127.0.0.1 -k /tmp" -l /tmp/postgres.log start; then
+        echo "✓ Postgres started successfully after WAL repair."
+    else
+        echo "⚠ Postgres failed to start even after WAL repair!"
+        echo "Treating cluster as unrecoverable. Wiping database to auto-recover..."
+        
+        # Stop database process if partially running
+        pg_ctl -D "$DB_DIR" -m immediate stop || true
+        pkill -9 -f postgres || true
+        
+        # Backup the corrupted database cluster
+        BACKUP_DIR="${DB_DIR}_corrupted_$(date +%s)"
+        echo "Moving corrupted cluster to: $BACKUP_DIR"
+        mv "$DB_DIR" "$BACKUP_DIR" 2>/dev/null || rm -rf "$DB_DIR"
+        
+        # Re-create database directory
+        mkdir -p "$DB_DIR"
+        chmod 700 "$DB_DIR"
+        
+        echo "Re-initializing fresh Postgres cluster..."
+        initdb -D "$DB_DIR"
+        
+        # Re-apply configuration and optimizations
+        echo "host all all 127.0.0.1/32 trust" >> "$DB_DIR/pg_hba.conf"
+        if [ -f "$DB_DIR/postgresql.conf" ]; then
+            echo "fsync = off" >> "$DB_DIR/postgresql.conf"
+            echo "synchronous_commit = off" >> "$DB_DIR/postgresql.conf"
+            echo "full_page_writes = off" >> "$DB_DIR/postgresql.conf"
+            echo "shared_buffers = 128MB" >> "$DB_DIR/postgresql.conf"
+        fi
+        
+        echo "Starting fresh Postgres server..."
+        if pg_ctl -D "$DB_DIR" -w -t 120 -o "-h 127.0.0.1 -k /tmp" -l /tmp/postgres.log start; then
+            echo "✓ Fresh Postgres started successfully!"
+        else
+            echo "❌ CRITICAL: Fresh Postgres failed to start! Printing logs:"
+            cat /tmp/postgres.log
+            exit 1
+        fi
+    fi
+fi
 
 # Wait for postgres to be ready (up to 120 seconds to allow for NFS directory fsync syncs on reboot)
 echo "Waiting for Postgres to start..."

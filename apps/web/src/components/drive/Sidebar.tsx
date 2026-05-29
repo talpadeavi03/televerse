@@ -13,7 +13,13 @@ const NAV_ITEMS = [
   { icon: Trash2, label: 'Trash', href: '/drive/trash' },
 ]
 
-export function Sidebar() {
+export function Sidebar({
+  isOpen,
+  setIsOpen,
+}: {
+  isOpen: boolean
+  setIsOpen: (open: boolean) => void
+}) {
   const pathname = usePathname()
   const { data } = useQuery({
     queryKey: ['folders'],
@@ -21,7 +27,9 @@ export function Sidebar() {
   })
 
   return (
-    <aside className="w-60 flex-shrink-0 border-r border-white/10 bg-surface-50 flex flex-col">
+    <aside className={`flex-shrink-0 border-r border-white/10 bg-surface-50 flex flex-col transition-all duration-300 ${
+      isOpen ? 'w-60 opacity-100' : 'w-0 opacity-0 -translate-x-full border-r-0 overflow-hidden'
+    }`}>
       {/* Logo */}
       <div className="px-4 py-5 flex items-center gap-2.5">
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center">

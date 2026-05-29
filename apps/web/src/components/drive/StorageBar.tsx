@@ -23,7 +23,7 @@ export function StorageBar() {
   const formatted = data?.data.usedFormatted ?? '0 B'
 
   return (
-    <div className="glass rounded-xl p-4 flex items-center gap-4">
+    <div className="glass rounded-xl p-4 flex items-center gap-4 min-h-[96px]">
       <div className="w-10 h-10 rounded-lg bg-brand-600/20 flex items-center justify-center flex-shrink-0">
         <HardDrive className="w-5 h-5 text-brand-400" />
       </div>

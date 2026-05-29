@@ -68,18 +68,18 @@ export function UploadZone({
       <div
         {...getRootProps()}
         id="file-upload-trigger"
-        className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${
+        className={`border-2 border-dashed rounded-xl p-3 flex flex-col justify-center text-center cursor-pointer transition-all duration-200 h-full min-h-[96px] ${
           isDragActive
-            ? 'border-brand-500 bg-brand-500/10 scale-[1.02]'
+            ? 'border-brand-500 bg-brand-500/10 scale-[1.01]'
             : 'border-white/20 hover:border-brand-500/50 hover:bg-brand-500/5'
         }`}
       >
         <input {...getInputProps()} />
-        <Upload className={`w-8 h-8 mx-auto mb-3 transition-colors ${isDragActive ? 'text-brand-400' : 'text-gray-500'}`} />
-        <p className={`font-medium transition-colors ${isDragActive ? 'text-brand-300' : 'text-gray-400'}`}>
+        <Upload className={`w-5 h-5 mx-auto mb-1.5 transition-colors ${isDragActive ? 'text-brand-400' : 'text-gray-500'}`} />
+        <p className={`text-xs font-semibold transition-colors ${isDragActive ? 'text-brand-300' : 'text-gray-400'}`}>
           {isDragActive ? 'Drop files here' : 'Drag & drop files here'}
         </p>
-        <p className="text-sm text-gray-600 mt-1">or click to browse · Max 2 GB per file</p>
+        <p className="text-[10px] text-gray-600 mt-0.5">or click to browse · Max 2 GB per file</p>
       </div>
 
       {uploads.length > 0 && (

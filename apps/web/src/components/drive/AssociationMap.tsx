@@ -53,8 +53,8 @@ export function AssociationMap() {
   const nodes = [...graph.nodes]
   const links = [...graph.links]
 
-  const width = 800
-  const height = 240
+  const width = 1000
+  const height = 360
   const centerX = width / 2
   const centerY = height / 2
 
@@ -65,7 +65,7 @@ export function AssociationMap() {
   const folders = nodes.filter((n) => n.type === 'folder')
   folders.forEach((folder, idx) => {
     const total = folders.length
-    const x = total === 1 ? centerX : centerX + (idx - (total - 1) / 2) * 200
+    const x = total === 1 ? centerX : centerX + (idx - (total - 1) / 2) * 280
     nodePositions[folder.id] = { x, y: centerY }
   })
 
@@ -73,7 +73,7 @@ export function AssociationMap() {
   const tags = nodes.filter((n) => n.type === 'tag')
   tags.forEach((tag, idx) => {
     const angle = (idx / tags.length) * 2 * Math.PI
-    const radius = 80
+    const radius = 120
     const x = centerX + radius * Math.cos(angle)
     const y = centerY + radius * Math.sin(angle)
     nodePositions[tag.id] = { x, y }
@@ -89,14 +89,14 @@ export function AssociationMap() {
     if (parentId && nodePositions[parentId]) {
       const parentPos = nodePositions[parentId]
       const angle = (idx / files.length) * 2 * Math.PI + (idx * 0.5)
-      const radius = 45 + (idx % 3) * 15
+      const radius = 65 + (idx % 3) * 20
       const x = parentPos.x + radius * Math.cos(angle)
       const y = parentPos.y + radius * Math.sin(angle)
       nodePositions[file.id] = { x, y }
     } else {
       // Free floating nodes
       const angle = (idx / files.length) * 2 * Math.PI
-      const radius = 95
+      const radius = 135
       const x = centerX + radius * Math.cos(angle)
       const y = centerY + radius * Math.sin(angle)
       nodePositions[file.id] = { x, y }
@@ -107,7 +107,7 @@ export function AssociationMap() {
   nodes.forEach((node, idx) => {
     if (!nodePositions[node.id]) {
       const angle = (idx / nodes.length) * 2 * Math.PI
-      nodePositions[node.id] = { x: centerX + 120 * Math.cos(angle), y: centerY + 70 * Math.sin(angle) }
+      nodePositions[node.id] = { x: centerX + 180 * Math.cos(angle), y: centerY + 110 * Math.sin(angle) }
     }
   })
 
@@ -151,7 +151,7 @@ export function AssociationMap() {
       </div>
 
       {/* SVG Network Map */}
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-60 select-none">
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-80 select-none">
         <defs>
           <radialGradient id="folderGlow" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.4" />
@@ -196,20 +196,20 @@ export function AssociationMap() {
           const isDimmed = hoveredNode && !isHovered && !isLinked
 
           // Determine node radius and design
-          let r = 5
+          let r = 9
           let fill = '#a1a1aa'
           let glow = null
 
           if (node.type === 'folder') {
-            r = 12
+            r = 24
             fill = '#8b5cf6'
-            glow = <circle cx={pos.x} cy={pos.y} r={28} fill="url(#folderGlow)" />
+            glow = <circle cx={pos.x} cy={pos.y} r={56} fill="url(#folderGlow)" />
           } else if (node.type === 'tag') {
-            r = 7
+            r = 14
             fill = '#14b8a6'
-            glow = <circle cx={pos.x} cy={pos.y} r={20} fill="url(#tagGlow)" />
+            glow = <circle cx={pos.x} cy={pos.y} r={40} fill="url(#tagGlow)" />
           } else if (node.type === 'file') {
-            r = 5
+            r = 9
             fill = isHovered ? '#818cf8' : '#38bdf8'
           }
 
@@ -237,10 +237,10 @@ export function AssociationMap() {
                 <circle
                   cx={pos.x}
                   cy={pos.y}
-                  r={r + 4}
+                  r={r + 8}
                   fill="none"
                   stroke={node.type === 'tag' ? '#2dd4bf' : '#818cf8'}
-                  strokeWidth={1}
+                  strokeWidth={1.5}
                   className="animate-pulse"
                 />
               )}
@@ -251,7 +251,7 @@ export function AssociationMap() {
               {/* Glowing star visual for files */}
               {node.type === 'file' && isHovered && (
                 <polygon
-                  points={`${pos.x},${pos.y - 12} ${pos.x + 3},${pos.y - 3} ${pos.x + 12},${pos.y} ${pos.x + 3},${pos.y + 3} ${pos.x},${pos.y + 12} ${pos.x - 3},${pos.y + 3} ${pos.x - 12},${pos.y} ${pos.x - 3},${pos.y - 3}`}
+                  points={`${pos.x},${pos.y - 18} ${pos.x + 5},${pos.y - 5} ${pos.x + 18},${pos.y} ${pos.x + 5},${pos.y + 5} ${pos.x},${pos.y + 18} ${pos.x - 5},${pos.y + 5} ${pos.x - 18},${pos.y} ${pos.x - 5},${pos.y - 5}`}
                   fill="#60a5fa"
                   opacity={0.3}
                 />
@@ -260,10 +260,10 @@ export function AssociationMap() {
               {/* Text Label */}
               <text
                 x={pos.x}
-                y={pos.y + r + 10}
+                y={pos.y + r + 13}
                 textAnchor="middle"
                 fill={isHovered || isLinked ? '#ffffff' : '#9ca3af'}
-                fontSize={node.type === 'folder' ? '9px' : '7.5px'}
+                fontSize={node.type === 'folder' ? '11px' : '9.5px'}
                 fontWeight={node.type === 'folder' || isHovered ? 'bold' : 'normal'}
                 className="pointer-events-none transition-all duration-300 font-sans tracking-wide"
                 opacity={isDimmed ? 0.15 : 1}

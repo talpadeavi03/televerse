@@ -1,12 +1,18 @@
 'use client'
 
-import { Search, Bell, LogOut, User } from 'lucide-react'
+import { Search, Bell, LogOut, User, Menu } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/lib/api'
 
-export function DriveHeader() {
+export function DriveHeader({
+  onToggleSidebar,
+  isSidebarOpen,
+}: {
+  onToggleSidebar: () => void
+  isSidebarOpen: boolean
+}) {
   const [search, setSearch] = useState('')
   const router = useRouter()
   const { user, clearAuth } = useAuthStore()
@@ -19,6 +25,15 @@ export function DriveHeader() {
 
   return (
     <header className="flex items-center gap-4 px-6 py-3 border-b border-white/10 bg-surface-50/50 backdrop-blur-sm">
+      {/* Sidebar Toggle Hamburger */}
+      <button
+        onClick={onToggleSidebar}
+        className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors mr-1 flex-shrink-0"
+        title={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+      >
+        <Menu className="w-5 h-5" />
+      </button>
+
       {/* Search */}
       <div className="flex-1 max-w-md relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
