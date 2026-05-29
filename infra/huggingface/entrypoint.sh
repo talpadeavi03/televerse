@@ -94,9 +94,14 @@ fi
 
 echo "Starting Postgres server..."
 pg_ctl -D "$DB_DIR" -w -t 120 -o "-h 127.0.0.1 -k /tmp" -l /tmp/postgres.log start || {
-  echo "❌ Postgres failed to start! Printing database logs:"
-  cat /tmp/postgres.log
-  exit 1
+  echo "⚠ Postgres failed to start. Attempting to repair corrupted WAL using pg_resetwal..."
+  pg_resetwal -f "$DB_DIR"
+  echo "Retrying Postgres server start after WAL repair..."
+  pg_ctl -D "$DB_DIR" -w -t 120 -o "-h 127.0.0.1 -k /tmp" -l /tmp/postgres.log start || {
+    echo "❌ Postgres failed to start even after WAL repair! Printing database logs:"
+    cat /tmp/postgres.log
+    exit 1
+  }
 }
 
 # Wait for postgres to be ready (up to 120 seconds to allow for NFS directory fsync syncs on reboot)
