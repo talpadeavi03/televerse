@@ -209,11 +209,13 @@ export class TelegramService {
 
   async downloadFile(encryptedSession: string, messageId: bigint): Promise<Readable> {
     const client = await this.getClient(encryptedSession)
-    // GramJS streams the file — wrap in a Readable
-    const buffer = await client.downloadMedia(
-      new Api.InputMessageID({ id: Number(messageId) }) as any,
-      {},
-    ) as Buffer
+    const messages = await client.getMessages(new Api.InputPeerSelf(), { ids: [Number(messageId)] })
+    const msg = messages?.[0]
+    if (!msg || !msg.media) {
+      await client.disconnect()
+      throw new Error('Telegram message or media not found')
+    }
+    const buffer = await client.downloadMedia(msg, {}) as Buffer
     await client.disconnect()
 
     const { Readable } = await import('stream')
@@ -222,10 +224,13 @@ export class TelegramService {
 
   async downloadToBuffer(encryptedSession: string, messageId: bigint): Promise<Buffer> {
     const client = await this.getClient(encryptedSession)
-    const buffer = await client.downloadMedia(
-      new Api.InputMessageID({ id: Number(messageId) }) as any,
-      {},
-    ) as Buffer
+    const messages = await client.getMessages(new Api.InputPeerSelf(), { ids: [Number(messageId)] })
+    const msg = messages?.[0]
+    if (!msg || !msg.media) {
+      await client.disconnect()
+      throw new Error('Telegram message or media not found')
+    }
+    const buffer = await client.downloadMedia(msg, {}) as Buffer
     await client.disconnect()
     return buffer
   }
