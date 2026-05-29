@@ -17,6 +17,18 @@ describe('Health check', () => {
     process.env['GROQ_API_KEY'] = 'test_key'
     process.env['INTERNAL_SECRET'] = 'test-internal-secret-16chars'
     app = await buildApp()
+
+    // Automatically apply DB migrations to the test database
+    try {
+      const db = getDb()
+      const { migrate } = await import('drizzle-orm/postgres-js/migrator')
+      const path = await import('path')
+      const url = await import('url')
+      const currentDir = path.dirname(url.fileURLToPath(import.meta.url))
+      await migrate(db, { migrationsFolder: path.resolve(currentDir, '../../../infra/migrations') })
+    } catch (err: any) {
+      console.warn('⚠️ Test DB migration skipped (possibly no database running or reachable):', err.message)
+    }
   })
 
   it('returns 200 on /health', async () => {
