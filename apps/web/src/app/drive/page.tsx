@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { FileGrid } from '@/components/drive/FileGrid'
 import { UploadZone } from '@/components/drive/UploadZone'
 import { StorageBar } from '@/components/drive/StorageBar'
+import { AssociationMap } from '@/components/drive/AssociationMap'
 import { api } from '@/lib/api'
 import type { TeleFile } from '@televerse/types'
 
@@ -43,6 +44,7 @@ export default function DrivePage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <StorageBar />
+      {statusData?.data.connected && <AssociationMap />}
       <UploadZone onUploadComplete={refetch} />
       <FileGrid files={data?.data ?? []} loading={isLoading} onRefresh={refetch} />
     </div>

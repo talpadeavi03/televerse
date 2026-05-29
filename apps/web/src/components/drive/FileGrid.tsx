@@ -1,6 +1,6 @@
 'use client'
 
-import { Download, Trash2, Share2, MoreVertical, FileText, Image, Video, Music, Package, FileCode, FileIcon, Loader2 } from 'lucide-react'
+import { Download, Trash2, Share2, MoreVertical, FileText, Image, Video, Music, Package, FileCode, FileIcon, Loader2, RotateCcw, Star } from 'lucide-react'
 import { useState } from 'react'
 import type { TeleFile } from '@televerse/types'
 import { api, BASE_URL } from '@/lib/api'
@@ -38,12 +38,15 @@ export function FileGrid({
   files,
   loading,
   onRefresh,
+  isTrashView = false,
 }: {
   files: TeleFile[]
   loading: boolean
   onRefresh: () => void
+  isTrashView?: boolean
 }) {
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [starring, setStarring] = useState<string | null>(null)
 
   async function handleDelete(id: string) {
     setDeleting(id)
@@ -52,6 +55,38 @@ export function FileGrid({
       onRefresh()
     } finally {
       setDeleting(null)
+    }
+  }
+
+  async function handleRestore(id: string) {
+    try {
+      await api.patch(`/v1/files/${id}/restore`, {})
+      onRefresh()
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  async function handlePurge(id: string) {
+    if (!confirm('Are you sure you want to permanently delete this file from both TeleVerse and Telegram? This cannot be undone.')) {
+      return
+    }
+    setDeleting(id)
+    try {
+      await api.delete(`/v1/files/${id}/purge`)
+      onRefresh()
+    } finally {
+      setDeleting(null)
+    }
+  }
+
+  async function handleStarToggle(id: string) {
+    setStarring(id)
+    try {
+      await api.patch(`/v1/files/${id}/star`, {})
+      onRefresh()
+    } finally {
+      setStarring(null)
     }
   }
 
@@ -121,30 +156,73 @@ export function FileGrid({
 
               {/* Actions */}
               <div className="col-span-2 flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => handleDownload(file)}
-                  className="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-white hover:bg-white/10"
-                  title="Download"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  className="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-white hover:bg-white/10"
-                  title="Share"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => handleDelete(file.id)}
-                  disabled={deleting === file.id}
-                  className="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-red-400 hover:bg-red-400/10"
-                  title="Delete"
-                >
-                  {deleting === file.id
-                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    : <Trash2 className="w-3.5 h-3.5" />
-                  }
-                </button>
+                {isTrashView ? (
+                  <>
+                    <button
+                      onClick={() => handleRestore(file.id)}
+                      className="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-green-400 hover:bg-green-400/10"
+                      title="Restore File"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handlePurge(file.id)}
+                      disabled={deleting === file.id}
+                      className="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-red-400 hover:bg-red-400/10"
+                      title="Delete Permanently"
+                    >
+                      {deleting === file.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handleDownload(file)}
+                      className="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-white hover:bg-white/10"
+                      title="Download"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleStarToggle(file.id)}
+                      disabled={starring === file.id}
+                      className={`w-7 h-7 flex items-center justify-center rounded ${
+                        file.isStarred
+                          ? 'text-yellow-400 hover:text-yellow-300 hover:bg-yellow-400/10'
+                          : 'text-gray-400 hover:text-white hover:bg-white/10'
+                      }`}
+                      title={file.isStarred ? 'Unstar file' : 'Star file'}
+                    >
+                      {starring === file.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Star className={`w-3.5 h-3.5 ${file.isStarred ? 'fill-yellow-400' : ''}`} />
+                      )}
+                    </button>
+                    <button
+                      className="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-white hover:bg-white/10"
+                      title="Share"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(file.id)}
+                      disabled={deleting === file.id}
+                      className="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-red-400 hover:bg-red-400/10"
+                      title="Move to Trash"
+                    >
+                      {deleting === file.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           )

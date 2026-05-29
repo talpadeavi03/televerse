@@ -16,6 +16,8 @@ const listQuerySchema = z.object({
   sort: z.enum(['name', 'size', 'date']).default('date'),
   order: z.enum(['asc', 'desc']).default('desc'),
   deleted: z.coerce.boolean().default(false),
+  starred: z.coerce.boolean().optional(),
+  shared: z.coerce.boolean().optional(),
 })
 
 export const filesRoutes: FastifyPluginAsync = async (app) => {
@@ -29,13 +31,15 @@ export const filesRoutes: FastifyPluginAsync = async (app) => {
     const query = listQuerySchema.safeParse(req.query)
     if (!query.success) return { error: 'Invalid query', code: 'INVALID_QUERY', statusCode: 400 }
 
-    const { folderId, search, page, limit, sort, order, deleted } = query.data
+    const { folderId, search, page, limit, sort, order, deleted, starred, shared } = query.data
     const offset = (page - 1) * limit
 
     const conditions = [
       eq(files.userId, payload.sub),
       eq(files.isDeleted, deleted),
-      ...(folderId ? [eq(files.folderId, folderId)] : [isNull(files.folderId)]),
+      ...(starred !== undefined ? [eq(files.isStarred, starred)] : []),
+      ...(shared !== undefined ? [eq(files.isShared, shared)] : []),
+      ...(starred || shared ? [] : folderId ? [eq(files.folderId, folderId)] : [isNull(files.folderId)]),
       ...(search ? [ilike(files.name, `%${search}%`)] : []),
     ]
 
@@ -161,5 +165,98 @@ export const filesRoutes: FastifyPluginAsync = async (app) => {
     const { folderId } = (req.body ?? {}) as { folderId?: string | null }
     await db.update(files).set({ folderId: folderId ?? null }).where(and(eq(files.id, id), eq(files.userId, payload.sub)))
     return reply.status(204).send()
+  })
+
+  // PATCH /v1/files/:id/star
+  app.patch('/:id/star', { preHandler: authenticate }, async (req, reply) => {
+    const { id } = req.params as { id: string }
+    const payload = req.user as { sub: string }
+    
+    const [file] = await db.select().from(files).where(and(eq(files.id, id), eq(files.userId, payload.sub))).limit(1)
+    if (!file) return reply.status(404).send({ error: 'File not found', code: 'NOT_FOUND', statusCode: 404 })
+
+    const [updated] = await db.update(files).set({ isStarred: !file.isStarred }).where(eq(files.id, id)).returning()
+    return { data: updated }
+  })
+
+  // DELETE /v1/files/:id/purge
+  app.delete('/:id/purge', { preHandler: authenticate }, async (req, reply) => {
+    const { id } = req.params as { id: string }
+    const payload = req.user as { sub: string }
+
+    const [file] = await db.select().from(files).where(and(eq(files.id, id), eq(files.userId, payload.sub))).limit(1)
+    if (!file) return reply.status(404).send({ error: 'File not found', code: 'NOT_FOUND', statusCode: 404 })
+
+    const [user] = await db.select({ telegramSessionEncrypted: users.telegramSessionEncrypted }).from(users).where(eq(users.id, payload.sub)).limit(1)
+    
+    if (user?.telegramSessionEncrypted && file.tgMessageId) {
+      try {
+        await tg.deleteMessage(user.telegramSessionEncrypted, file.tgMessageId)
+      } catch (err: any) {
+        console.warn(`Failed to delete backing Telegram message for file ${id}:`, err.message)
+      }
+    }
+
+    // Permanent DB delete
+    await db.delete(files).where(eq(files.id, id))
+    
+    // Subtract storage bytes from user's storage limits
+    await db.update(users).set({ storageUsedBytes: sql`GREATEST(0, storage_used_bytes - ${file.sizeBytes})` }).where(eq(users.id, payload.sub))
+
+    return reply.status(204).send()
+  })
+
+  // GET /v1/files/associations
+  app.get('/associations', { preHandler: authenticate }, async (req) => {
+    const payload = req.user as { sub: string }
+    
+    // 1. Fetch active files (including their tags and metadata)
+    const rows = await db.execute(sql`
+      SELECT f.id, f.name, f.mime_type, f.size_bytes, f.folder_id,
+             am.tags
+      FROM files f
+      LEFT JOIN ai_metadata am ON am.file_id = f.id
+      WHERE f.user_id = ${payload.sub} AND f.is_deleted = false
+      LIMIT 100
+    `) as unknown as { id: string; name: string; mime_type: string | null; size_bytes: string; folder_id: string | null; tags: string[] | null }[]
+
+    // 2. Fetch folders
+    const folderRows = await db.select({ id: folders.id, name: folders.name }).from(folders).where(eq(folders.userId, payload.sub))
+
+    const nodes: any[] = []
+    const links: any[] = []
+    const tagSet = new Set<string>()
+
+    // Add folder nodes
+    for (const folder of folderRows) {
+      nodes.push({ id: folder.id, label: folder.name, type: 'folder', color: '#8b5cf6' })
+    }
+
+    for (const row of rows) {
+      const size = Number(row.size_bytes)
+      nodes.push({ id: row.id, label: row.name, type: 'file', mime: row.mime_type, size })
+
+      // Link file to parent folder if present
+      if (row.folder_id) {
+        links.push({ source: row.id, target: row.folder_id, value: 2 })
+      }
+
+      // Add AI tags and links
+      if (row.tags && Array.isArray(row.tags)) {
+        for (const tag of row.tags) {
+          const cleanedTag = tag.trim().toLowerCase()
+          if (cleanedTag.length > 0) {
+            const tagNodeId = `tag-${cleanedTag}`
+            if (!tagSet.has(cleanedTag)) {
+              tagSet.add(cleanedTag)
+              nodes.push({ id: tagNodeId, label: cleanedTag, type: 'tag', color: '#14b8a6' })
+            }
+            links.push({ source: row.id, target: tagNodeId, value: 1 })
+          }
+        }
+      }
+    }
+
+    return { data: { nodes, links } }
   })
 }

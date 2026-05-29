@@ -35,6 +35,7 @@ export interface TeleFile {
   uploadedAt: Date
   isDeleted: boolean
   isShared: boolean
+  isStarred: boolean
   version: number
   aiMetadata?: AIMetadata
 }

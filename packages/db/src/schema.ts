@@ -73,6 +73,7 @@ export const files = pgTable(
     uploadedAt: timestamp('uploaded_at', { withTimezone: true }).defaultNow(),
     isDeleted: boolean('is_deleted').default(false),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    isStarred: boolean('is_starred').default(false).notNull(),
     isShared: boolean('is_shared').default(false),
     version: integer('version').default(1),
   },

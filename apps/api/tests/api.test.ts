@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { buildApp } from '../src/app'
 import { verifyPassword } from '../src/routes/auth'
+import { getDb, files, users } from '@televerse/db'
+import { eq } from 'drizzle-orm'
 
 describe('Health check', () => {
   let app: Awaited<ReturnType<typeof buildApp>>
@@ -33,14 +35,8 @@ describe('verifyPassword robustness', () => {
   const validStoredHash = '3f9d506927a71a3962b32bb39b2cd81a:b0d2d3a3e6f9a76e938bf8c5c7d0d0eb3f9d506927a71a3962b32bb39b2cd81ab0d2d3a3e6f9a76e938bf8c5c7d0d0eb3f9d506927a71a3962b32bb39b2cd81a'
 
   it('returns true for correct password and valid stored hash', async () => {
-    // Generates a proper mock salt:hash representation
-    // Let's verify with an actual generated hash:
-    // salt: '3f9d506927a71a3962b32bb39b2cd81a'
-    // password: 'testpassword'
-    // Let's use custom scrypt to verify, or we can just hash it first:
     const salt = '3f9d506927a71a3962b32bb39b2cd81a'
     const password = 'testpassword'
-    // To make sure we have a perfectly matching salt:hash, let's create it dynamically in the test:
     const crypto = await import('crypto')
     const derived = crypto.scryptSync(password, salt, 64)
     const stored = `${salt}:${derived.toString('hex')}`
@@ -78,5 +74,103 @@ describe('verifyPassword robustness', () => {
   it('returns false instead of throwing on empty inputs', async () => {
     expect(await verifyPassword('', '')).toBe(false)
     expect(await verifyPassword('password', '')).toBe(false)
+  })
+})
+
+describe('Files Operations', () => {
+  let app: Awaited<ReturnType<typeof buildApp>>
+  const userId = '11111111-2222-3333-4444-555555555555'
+  let token: string
+  let testFileId: string
+
+  beforeAll(async () => {
+    app = await buildApp()
+    token = app.jwt.sign({ sub: userId, email: 'test@example.com' })
+
+    const db = getDb()
+    // Make sure test user exists
+    await db.insert(users).values({
+      id: userId,
+      email: 'test@example.com',
+      passwordHash: 'salt:hash',
+      storageUsedBytes: 0n,
+    }).onConflictDoNothing()
+
+    // Insert a test file
+    const [file] = await db.insert(files).values({
+      userId,
+      name: 'test_file.txt',
+      sizeBytes: 1024n,
+      mimeType: 'text/plain',
+      isStarred: false,
+      isDeleted: false,
+    }).returning()
+    testFileId = file.id
+  })
+
+  it('toggles isStarred status via PATCH /v1/files/:id/star', async () => {
+    // 1. Star it
+    const res1 = await app.inject({
+      method: 'PATCH',
+      url: `/v1/files/${testFileId}/star`,
+      headers: { authorization: `Bearer ${token}` }
+    })
+    expect(res1.statusCode).toBe(200)
+    const data1 = JSON.parse(res1.body)
+    expect(data1.data.isStarred).toBe(true)
+
+    // 2. Unstar it
+    const res2 = await app.inject({
+      method: 'PATCH',
+      url: `/v1/files/${testFileId}/star`,
+      headers: { authorization: `Bearer ${token}` }
+    })
+    expect(res2.statusCode).toBe(200)
+    const data2 = JSON.parse(res2.body)
+    expect(data2.data.isStarred).toBe(false)
+  })
+
+  it('returns soft-deleted files in GET /v1/files?deleted=true and active files otherwise', async () => {
+    const db = getDb()
+    // Soft-delete the file
+    await db.update(files).set({ isDeleted: true }).where(eq(files.id, testFileId))
+
+    // Query active files (should be empty or exclude testFileId)
+    const resActive = await app.inject({
+      method: 'GET',
+      url: '/v1/files',
+      headers: { authorization: `Bearer ${token}` }
+    })
+    expect(resActive.statusCode).toBe(200)
+    const activeFiles = JSON.parse(resActive.body).data
+    expect(activeFiles.some((f: any) => f.id === testFileId)).toBe(false)
+
+    // Query soft-deleted files (should include testFileId)
+    const resDeleted = await app.inject({
+      method: 'GET',
+      url: '/v1/files?deleted=true',
+      headers: { authorization: `Bearer ${token}` }
+    })
+    expect(resDeleted.statusCode).toBe(200)
+    const deletedFiles = JSON.parse(resDeleted.body).data
+    expect(deletedFiles.some((f: any) => f.id === testFileId)).toBe(true)
+
+    // Restore the file for next tests
+    await db.update(files).set({ isDeleted: false }).where(eq(files.id, testFileId))
+  })
+
+  it('permanently deletes a file via DELETE /v1/files/:id/purge', async () => {
+    // 1. Purge the file
+    const resPurge = await app.inject({
+      method: 'DELETE',
+      url: `/v1/files/${testFileId}/purge`,
+      headers: { authorization: `Bearer ${token}` }
+    })
+    expect(resPurge.statusCode).toBe(204)
+
+    // 2. Check if file is gone from DB
+    const db = getDb()
+    const [file] = await db.select().from(files).where(eq(files.id, testFileId)).limit(1)
+    expect(file).toBeUndefined()
   })
 })
