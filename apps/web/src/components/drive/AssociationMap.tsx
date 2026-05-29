@@ -178,8 +178,8 @@ export function AssociationMap() {
               y1={sourcePos.y}
               x2={targetPos.x}
               y2={targetPos.y}
-              stroke={isHovered ? '#818cf8' : 'rgba(255, 255, 255, 0.08)'}
-              strokeWidth={isHovered ? 1.5 : 0.75}
+              stroke={isHovered ? '#818cf8' : 'rgba(255, 255, 255, 0.18)'}
+              strokeWidth={isHovered ? 2.0 : 1.0}
               strokeDasharray={link.value === 1 ? '4 2' : undefined}
               className="transition-all duration-300"
             />
@@ -256,6 +256,20 @@ export function AssociationMap() {
                   opacity={0.3}
                 />
               )}
+
+              {/* Text Label */}
+              <text
+                x={pos.x}
+                y={pos.y + r + 10}
+                textAnchor="middle"
+                fill={isHovered || isLinked ? '#ffffff' : '#9ca3af'}
+                fontSize={node.type === 'folder' ? '9px' : '7.5px'}
+                fontWeight={node.type === 'folder' || isHovered ? 'bold' : 'normal'}
+                className="pointer-events-none transition-all duration-300 font-sans tracking-wide"
+                opacity={isDimmed ? 0.15 : 1}
+              >
+                {node.label.length > 15 ? `${node.label.slice(0, 12)}...` : node.label}
+              </text>
             </g>
           )
         })}

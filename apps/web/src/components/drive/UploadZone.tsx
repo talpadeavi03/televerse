@@ -12,7 +12,13 @@ interface UploadFile {
   error?: string
 }
 
-export function UploadZone({ onUploadComplete }: { onUploadComplete?: () => void }) {
+export function UploadZone({
+  onUploadComplete,
+  currentFolderId = null,
+}: {
+  onUploadComplete?: () => void
+  currentFolderId?: string | null
+}) {
   const [uploads, setUploads] = useState<UploadFile[]>([])
 
   const updateFile = (name: string, patch: Partial<UploadFile>) => {
@@ -24,6 +30,9 @@ export function UploadZone({ onUploadComplete }: { onUploadComplete?: () => void
 
     const formData = new FormData()
     formData.append('file', uf.file)
+    if (currentFolderId) {
+      formData.append('folderId', currentFolderId)
+    }
 
     try {
       await api.upload('/v1/files/upload', formData, (pct) => {
@@ -40,10 +49,10 @@ export function UploadZone({ onUploadComplete }: { onUploadComplete?: () => void
     (accepted: File[]) => {
       const newUploads = accepted.map((f) => ({ file: f, status: 'pending' as const, progress: 0 }))
       setUploads((prev) => [...prev, ...newUploads])
-      newUploads.forEach(uploadFile)
+      newUploads.forEach((u) => uploadFile(u))
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [currentFolderId],
   )
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
