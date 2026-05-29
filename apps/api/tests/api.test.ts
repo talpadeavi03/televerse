@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import { buildApp } from '../src/app'
 import { verifyPassword } from '../src/routes/auth'
 import { getDb, files, users } from '@televerse/db'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 
 describe('Health check', () => {
   let app: Awaited<ReturnType<typeof buildApp>>
@@ -21,6 +21,11 @@ describe('Health check', () => {
     // Automatically apply DB migrations to the test database
     try {
       const db = getDb()
+      // Enable required PostgreSQL extensions first
+      await db.execute(sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`)
+      await db.execute(sql`CREATE EXTENSION IF NOT EXISTS "pgcrypto";`)
+      await db.execute(sql`CREATE EXTENSION IF NOT EXISTS "vector";`)
+
       const { migrate } = await import('drizzle-orm/postgres-js/migrator')
       const path = await import('path')
       const url = await import('url')
