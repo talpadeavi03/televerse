@@ -1,157 +1,235 @@
-# TeleVerse Engineering Bible: The Definitive Systems Architecture, Operations & Strategy Manual
+# TeleVerse Engineering Bible: The Master Systems Architecture, Operations & Strategy Manual
+*The Definitive Technical Reference and Onboarding Guide for Distributed Cloud Storage Overlays*
 
 ---
 
 ## PART 1 — EXECUTIVE OVERVIEW & PRODUCT STRATEGY
 
 ```
-   ┌──────────────────────────────────────────────────────────┐
-   │                       TELEVERSE                          │
-   │      "The Autonomous, Infinite Cloud Storage Engine"     │
-   └────────────┬─────────────────────────────┬───────────────┘
-                │                             │
-    ┌───────────▼───────────┐     ┌───────────▼───────────┐
-    │  Infinite TG Storage  │     │   AI Constellations   │
-    │  (Via MTProto Protocol│     │ (Semantic Graph Map)  │
-    └───────────────────────┘     └───────────────────────┘
+                          ┌───────────────────────────┐
+                          │     TELEVERSE ENGINE      │
+                          │   Virtual Object Layer    │
+                          └─────────────┬─────────────┘
+                                        │
+                ┌───────────────────────┼───────────────────────┐
+                ▼                       ▼                       ▼
+     ┌─────────────────────┐ ┌─────────────────────┐ ┌─────────────────────┐
+     │  TG MTProto DC API  │ │  pgvector metadata  │ │  Interactive Graph  │
+     │  (Infinite Storage) │ │   (Semantic RAG)    │ │   (WebVerse SVG)    │
+     └─────────────────────┘ └─────────────────────┘ └─────────────────────┘
 ```
 
 ### 1.1 Project Vision & Problem Statement
-TeleVerse is designed to address a critical inefficiency in cloud data storage: the artificial pricing scaling of commodity cloud drives versus the abundant, underutilized capacity of free messaging network attachments. Modern enterprise and personal storage systems (Google Drive, Dropbox, OneDrive) charge premium subscriptions for block or object storage, scaling aggressively as users cross tier boundaries. 
+The modern cloud storage industry is structured on artificial scarcity. Providers like Google Drive, Dropbox, Microsoft OneDrive, and Mega lease S3-like object storage tiers with steep pricing scaling, locking users into recurring monthly subscription fees as their files exceed standard free allocations (e.g., 15 GB for Google Drive, 2 GB for Dropbox). 
 
-At the same time, messaging platforms—specifically Telegram—offer free, high-speed, secure media attachment delivery with high per-file limits (up to 2 GB for standard accounts, 4 GB for Premium). TeleVerse bridges this gap, establishing a self-healing, zero-cost, infinite storage layer that aggregates Telegram’s MTProto storage networks into a unified virtual filesystem with high-performance querying, AI-powered semantic folder layouts, and interactive relational graphs (WebVerse).
+At the same time, messaging platforms—principally Telegram—deliver free, secure, and geographically distributed file transport networks capable of carrying individual attachments up to 2 GB for normal accounts and 4 GB for Premium accounts. The global infrastructure supporting these networks is highly optimized, fully encrypted, and distributed across multi-region Data Centers (DCs). 
 
-### 1.2 Level 1 to Level 7 Progressions
+TeleVerse bridges these two paradigms. It is a highly optimized virtual file system (VFS) overlay that utilizes the Telegram MTProto communication network as a free, high-performance, infinite storage backplane. It hides all complex chunking, network protocol negotiations, session indexing, rate limits, and Telegram API mechanics behind a sleek, glassmorphic Next.js web dashboard and a robust, self-healing Fastify API gateway. Combined with AI-driven content analysis, automated vector indexing, and dynamic network graphing (WebVerse), TeleVerse turns messaging storage into an enterprise-grade, cognitively indexable knowledge base.
+
+---
+
+### 1.2 Comprehensive Target Audience Progressions & Viewpoints
 
 #### Level 1: Complete Beginner
-*   **What it is**: TeleVerse is a website that lets you upload, download, and organize files in a folder structure, just like Google Drive, but it stores the files inside Telegram "Saved Messages" without charging you for space.
-*   **Why it exists**: Regular cloud drives quickly run out of free space and force you to pay monthly subscriptions. TeleVerse gives you unlimited space for free by using Telegram's message attachments behind the scenes.
+*   **What it is**: An online application that looks and behaves like Google Drive but never charges you for storage space because it stores your files in your Telegram "Saved Messages" chat.
+*   **Why it exists**: It stops you from paying monthly fees for cloud storage. You get infinite storage capacity by taking advantage of Telegram's free file sharing capabilities.
 
 #### Level 2: Junior Engineer
-*   **What it is**: A full-stack web application consisting of a Next.js frontend and a Fastify backend. Files are uploaded from the browser, chunked by the server, sent to Telegram using the GramJS MTProto client library, and their metadata (name, size, Telegram attachment IDs) is stored in a PostgreSQL database.
-*   **Problems Solved**: It bypasses the need for local or expensive AWS S3 buckets for actual file payloads, keeping local storage needs strictly confined to metadata databases and transient upload/download buffers.
+*   **What it is**: A full-stack TypeScript application composed of a Next.js frontend and a Fastify REST API server. File metadata is saved in a local PostgreSQL database, while the actual file data is streamed to Telegram's Data Centers using client-side MTProto bindings.
+*   **Problems Solved**: It decouples file metadata (stored locally) from the physical file payload (stored on Telegram's network), keeping local VM storage usage extremely low.
 
 #### Level 3: Mid-Level Engineer
-*   **What it is**: An asynchronous micro-filesystem abstraction. The API service exposes REST and WebSocket interfaces, proxying file stream pipelines directly into Telegram's DC (Data Center) storage. Metadata is managed using Drizzle ORM over PostgreSQL.
-*   **Alternatives Considered**: 
-    *   *Alternative*: Direct browser-to-Telegram uploading via client-side MTProto. 
-    *   *Why Rejected*: Exposes the user's raw Telegram API keys (`TG_API_ID`, `TG_API_HASH`) and session hashes in the browser client, posing severe security and reverse-engineering risks.
-    *   *Chosen Option*: Server-side API proxy using Fastify streams, caching sessions in Redis and database layers to hide credentials safely behind JWT session tokens.
+*   **What it is**: An asynchronous, queue-backed virtual file system. Files uploaded to the gateway are chunked into optimal parts, piped to Telegram's DCs via the GramJS client, and represented in PostgreSQL as structured files, folders, and relationships.
+*   **Alternatives Considered**:
+    *   *Direct Client-to-Telegram uploading*: Rejected because it exposes Telegram API keys (`TG_API_ID`, `TG_API_HASH`) in client-side bundles.
+    *   *S3 Storage Proxy*: Rejected due to high storage costs.
+    *   *Chosen Model*: Backend MTProto proxy caching API sessions in Redis and database layers to hide credentials safely behind JWT access tokens.
 
 #### Level 4: Senior Engineer
-*   **What it is**: A multi-tiered virtual filesystem with vector search capabilities (`pgvector`) and an interactive SVG-rendered knowledge graph. The system handles partial chunk uploads, resumes broken streams, and applies a three-tier database self-healing cascade on deployment containers to guarantee service availability under NFS write-ahead-log (WAL) corruptions.
-*   **Security & Scalability**: Implements JWT authentication, AES-256-GCM encryption of system tokens, and strict rate-limiting on both the HTTP API and the Telegram MTProto client to prevent flood-wait errors.
+*   **What it is**: A high-throughput storage overlay featuring multi-threaded chunk uploading, automated embedding pipelines (`pgvector`), and interactive React Flow visualization graphs. It features a self-healing three-tier database boot sequence that ensures zero-downtime container recoveries under NFS network volume failures.
+*   **Tradeoffs**: Higher initial upload latency than standard block storage (due to network chunking and Telegram validation steps), mitigated by asynchronous frontend states and parallelized stream chunk piping.
 
 #### Level 5: Staff Engineer
-*   **What it is**: An autonomous media filesystem proxy using localized MTProto worker nodes. High throughput is sustained by multi-threading chunk transfers, buffering streams, and managing user-specific Telegram message offsets using custom indexed relations.
-*   **Cost & Scalability Tradeoffs**:
-    *   *Cost*: Near-zero. Local compute and metadata databases require minimal resources. 
-    *   *Tradeoff*: API latency is slightly higher than raw S3 due to Telegram's upstream throttling and chunk-assembly steps. This is mitigated using asynchronous uploads and parallel streaming.
+*   **What it is**: A highly concurrent virtual filesystem overlay. The API gateway handles complex upstream MTProto events, automatically throttles traffic to prevent `FLOOD_WAIT` blocks, and implements transactional atomic operations to ensure metadata is only committed after successful Telegram DC storage confirmation.
+*   **Cost & Scaling**: Compute and local PostgreSQL costs scale near-linearly with user count, while object storage costs remain flat at $0.00, achieving unparalleled cost efficiency.
 
 #### Level 6: Principal Architect
-*   **What it is**: A distributed object-filesystem overlay mapping virtual UNIX directories onto Telegram's immutable message-id database. It features dynamic graph relationship engines executing cosine similarity models via embedding models (Gemini/OpenAI) to automatically associate files based on content context rather than folder structures.
+*   **What it is**: A distributed, zero-cost virtual filesystem matching hierarchical virtual UNIX directories onto Telegram's immutable message-id database. It features dynamic graph relationship engines executing cosine similarity models via embedding models (Gemini/OpenAI) to automatically associate files based on content context rather than folder structures.
 *   **Infrastructure Design**: Orchestrated with high-availability Nginx proxying, active Redis session locks, and persistent NFS volume self-healing scripts that automatically repair WAL, resolve stale locks, or re-initialize clusters instantly on boots.
 
 #### Level 7: CTO / Enterprise Architect
-*   **What it is**: A disruptive platform strategy converting standard cloud architecture paradigms from *Infrastructure-as-a-Service (IaaS)* models into a *Hyper-Distributed Overlay Network*. By utilizing existing public telecommunications architectures as a free storage utility layer, TeleVerse provides zero-marginal-cost data storage for enterprises, paired with cognitive search capabilities.
+*   **What it is**: A paradigm-shifting storage strategy converting standard cloud architecture paradigms from *Infrastructure-as-a-Service (IaaS)* models into a *Hyper-Distributed Overlay Network*. By utilizing existing public telecommunications architectures as a free storage utility layer, TeleVerse provides zero-marginal-cost data storage for enterprises, paired with cognitive search capabilities.
 *   **Future Roadmap**: Scaling into peer-to-peer storage overlays, integrating local edge vector databases, and offering custom enterprise SDKs that expose secure, encrypted, non-custodial storage pools.
 
 ---
 
-### 1.3 Strategic SWOT & Competitor Matrix
+### 1.3 Architectural & Strategic Viewpoints Matrix
 
 ```
-┌─────────────────┬───────────┬─────────────┬─────────────┬─────────────┬─────────────────┐
-│ Feature / Metric│ Google Dr.│ Dropbox     │ Telegram    │ NextCloud   │   TELEVERSE     │
-├─────────────────┼───────────┼─────────────┼─────────────┼─────────────┼─────────────────┤
-│ Base Cost       │ $1.99/mo+ │ $9.99/mo+   │ Free        │ Self-Host   │ Free (Self-Host)│
-│ Storage Limit   │ 15 GB     │ 2 GB        │ Unlimited   │ Disk-Bound  │ Unlimited (TG)  │
-│ Open Source     │ No        │ No          │ Clients Only│ Yes         │ Yes             │
-│ AI Search       │ Simple    │ Simple      │ Text Only   │ Plugins     │ Cosine Graph    │
-│ Self-Healing DB │ N/A       │ N/A         │ No          │ Manual      │ Yes (Three-Tier)│
-└─────────────────┴───────────┴─────────────┴─────────────┴─────────────┴─────────────────┘
+┌─────────────┬────────────────────────────────────────────────────────────────────────────────────────┐
+│ Viewpoint   │ Strategic Perspective & System Responsibilities                                        │
+├─────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+│ User        │ Expects zero-friction, drag-and-drop storage with immediate response and rich visual   │
+│             │ feedback. Does not care about underlying MTProto chunking or PostgreSQL connections.    │
+├─────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+│ Developer   │ Requires simple, type-safe API endpoints, clean Drizzle schemas, robust frontend state │
+│             │ management (Zustand), and immediate error feedback during local development.           │
+├─────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+│ DevOps      │ Focuses on Nginx configuration, container sizes, deployment pipelines, reverse-proxy   │
+│             │ routing, and maintaining zero-downtime backend restarts in isolated Docker workspaces.  │
+├─────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+│ Operations  │ Monitors active system RAM/CPU, tracks Redis session lock states, audits Telegram API   │
+│             │ traffic, and requires comprehensive tools to capture system and database logs.         │
+├─────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+│ Security    │ Enforces Zero-Trust authorization, JWT signature validation, AES-256-GCM encryption    │
+│             │ of session credentials, prompt-injection shielding, and robust API rate limiting.      │
+├─────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+│ QA          │ Writes end-to-end integration tests using Vitest, simulates network latency, validates │
+│             │ upload chunk limits, and designs destructive tests to trigger database self-healing.   │
+├─────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+│ CTO         │ Analyzes competitive positioning, ensures compliance with privacy policies, manages    │
+│             │ cloud budget allocations, and coordinates future mobile and enterprise feature roadmaps.│
+└─────────────┴────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-*   **Strengths**: Zero storage hosting fees; infinite capacity scaling; integrated AI-backed search; robust self-healing deployment container.
-*   **Weaknesses**: Susceptible to Telegram API TOS updates; increased processing latency for chunk stitching; dependent on third-party API availability.
-*   **Opportunities**: Enterprise secure-backup channels; consumer glassmorphic private storage vaults; personal local-first knowledge graph databases.
-*   **Threats**: Telegram API rate limit adjustments; upstream network latency; storage encryption policy mandates by telecommunications networks.
+---
+
+### 1.4 Strategic SWOT & Competitor Matrix
+
+```
+┌───────────────────┬──────────────┬──────────────┬──────────────┬──────────────┬──────────────────┐
+│ Dimension         │ Google Drive │ OneDrive     │ NextCloud    │ Synology     │ TELEVERSE        │
+├───────────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────────┤
+│ Base Monthly Fee  │ $1.99+       │ $1.99+       │ Self-Hosted  │ Hardware Cost│ Free             │
+│ Storage Limits    │ 15 GB        │ 5 GB         │ Disk-Bound   │ Disk-Bound   │ Infinite (TG)    │
+│ Storage Sourcing  │ S3 / Block   │ Azure Blob   │ S3 / Local   │ Local RAID   │ Telegram DC API  │
+│ Search Paradigm   │ Filename     │ Filename     │ Ext. Search  │ Simple Index │ Cosine similarity│
+│ Visual Interface  │ Standard Grid│ Windows File │ Classic Grid │ DSM Desktop  │ WebVerse Graph   │
+│ Boot Self-Healing │ No           │ No           │ Manual Script│ Manual       │ Yes (Three-Tier) │
+└───────────────────┴──────────────┴──────────────┴──────────────┴──────────────┴──────────────────┘
+```
+
+#### SWOT Analysis
+*   **Strengths (S)**: Absolute zero object-storage marginal cost; endless storage scalability; automated cognitive vector indexing (`pgvector`); state-of-the-art interactive SVG WebVerse star map; bulletproof self-healing container infrastructure.
+*   **Weaknesses (W)**: High reliance on Telegram API stability; network chunking adds slight latency compared to raw local SSD storage; session states require active, authenticated mobile/phone connections.
+*   **Opportunities (O)**: Secure non-custodial enterprise storage layers; consumer glassmorphic vaults; zero-cost local metadata knowledge bases.
+*   **Threats (T)**: Upstream Telegram API rate limit adjustments; target messaging accounts suspension due to high activity; future changes to free attachment size restrictions.
 
 ---
 
 ## PART 2 — COMPLETE HISTORY OF THE PROJECT
 
 ```
-  Phase 0: Monolithic POC  ──►  Phase 1: Next.js/Fastify  ──►  Phase 1.1: OpenClaw Admin
-         │                                                            │
-         ▼                                                            ▼
-  Phase 2: Advanced Graph  ◄──────────────────────────────────  Phase 1.2: DB Self-Healing
+       Phase 0               Phase 1             Phase 1.1             Phase 1.2             Phase 2
+┌───────────────────┐ ┌───────────────────┐ ┌───────────────────┐ ┌───────────────────┐ ┌───────────────────┐
+│ Monolithic POC    │ │ Web/API Workspaces│ │ OpenClaw Admin    │ │ Database Healing  │ │ Dynamic Constell. │
+│ ───────────────── │ │ ───────────────── │ │ ───────────────── │ │ ───────────────── │ │ ───────────────── │
+│ Timeline: Month 1 │ │ Timeline: Month 2 │ │ Timeline: Month 3 │ │ Timeline: Month 4 │ │ Timeline: Month 5 │
+│ Goal: Upload attachment  Goal: Build webapp    Goal: Build admin     Goal: Eliminate 503   Goal: Folder & Map  │
+└───────────────────┘ └───────────────────┘ └───────────────────┘ └───────────────────┘ └───────────────────┘
 ```
 
-### 2.1 Timeline & Project Phases
+### 2.1 Timeline, chronologies, and system updates
 
 #### Phase 0: Monolithic Proof-of-Concept (POC)
-*   **Timeline**: Month 1
-*   **Goal**: Prove that files could be uploaded as standard message attachments to Telegram via API and retrieved streamingly by matching Message IDs.
-*   **Challenges & Failures**: A single monolithic Node script used client-side sessions that repeatedly hit Telegram `FLOOD_WAIT` blocks. 
-*   **Lessons Learned**: Server-side abstraction with task queues and active session managers is critical to handle high concurrency.
+*   **Timeline**: Month 1.
+*   **Goal**: Establish a baseline communication channel between a Node.js process and Telegram data centers to successfully upload, store, and streamingly retrieve files using standard MTProto messages.
+*   **Design & Challenges**: The initial code was built as a single monolith with direct client-side session initialization. When uploading files larger than 10MB, the system regularly hit `FLOOD_WAIT` blocks and crashed due to buffer memory leakage.
+*   **Lessons Learned**: Stream-based chunking is mandatory. Storing sessions inside active Redis and PostgreSQL tables is crucial to keep the system responsive and scale operations without hitting rate limits.
 
-#### Phase 1: Next.js & Fastify Workspace Architecture
-*   **Timeline**: Month 2-3
-*   **Goal**: Establish a multi-project monorepo utilizing `pnpm workspaces` (Next.js frontend in `apps/web` and Fastify REST API in `apps/api`), sharing schemas in `packages/db`.
-*   **Bugs**: Next.js hydration mismatches on dynamic SVG graphs.
-*   **Rollback Strategy**: Maintain atomic tagging on Git releases and docker container images to allow rollback within 60 seconds.
+#### Phase 1: Workspace Architecture & Dynamic Frontend
+*   **Timeline**: Month 2.
+*   **Goal**: Separate concerns by migrating the system into a robust `pnpm workspaces` repository containing a Next.js web application (`apps/web`), a Fastify API (`apps/api`), and a shared database schema package (`packages/db`).
+*   **Bugs Encountered**: Next.js hydration failures due to the dynamic SVG render state of the constellation graph.
+*   **Architectural Decisions**: Implemented dynamic frontend components with strict client-side rendering (`'use client'`) to prevent server-side hydration conflicts.
 
-#### Phase 1.1: OpenClaw Autonomous Integration
-*   **Timeline**: Month 4
-*   **Goal**: Build advanced administrative gateways (`/v1/admin/logs` and `/v1/admin/restart`) allowing external orchestration daemons (OpenClaw) to audit service health and trigger zero-downtime hot-swaps.
-*   **Security Implemented**: Secret validation matching `INTERNAL_SECRET` in request headers, with automated parent-process detachment during hot-swaps.
+#### Phase 1.1: OpenClaw Administrative Integration
+*   **Timeline**: Month 3.
+*   **Goal**: Introduce advanced administrator tools (`/v1/admin/logs` and `/v1/admin/restart`) to allow orchestration systems (like the OpenClaw daemon) to audit logs and execute zero-downtime parent process hot-swaps.
+*   **Challenges & Security**: Admin routes require validation against an `INTERNAL_SECRET` token. The hot-swap functionality was designed to spawn a detached child process before gracefully shutting down the parent.
 
 #### Phase 1.2: Database Self-Healing & Service Availability Recovery
-*   **Timeline**: Current Phase (Month 5)
-*   **Goal**: Address `503 Service Unavailable` errors on Hugging Face Spaces caused by database container recycles abruptly unmounting NFS volumes.
-*   **Implementation**: A three-tier bash startup cascade that terminates rogue processes, wipes stale lock handles, runs WAL repairs via `pg_resetwal`, and automatically executes database wipes/migrations as a last-resort recovery.
+*   **Timeline**: Month 4 (Current).
+*   **Goal**: Eliminate the persistent `503 Service Unavailable` API failures on Hugging Face Spaces.
+*   **Root Cause**: Abrupt container recycles on Hugging Face Spaces left stale lock files (`postmaster.pid`) on the persistent NFS volume, preventing the database from booting and causing API connection timeouts.
+*   **Recovery Solution**: Designed a three-tier database self-healing cascade within the `entrypoint.sh` startup script that automatically terminates rogue database processes, repairs transaction logs, and re-initializes/migrates database schemas from scratch if needed.
 
-#### Phase 2: Complete WebVerse Graph & Collapsible Workspace
-*   **Timeline**: Future Roadmap (Month 6)
-*   **Goal**: Introduce advanced node-graph metrics, multi-user folders, customizable sharing links, and non-custodial local encryption keys.
+#### Phase 2: Dynamic WebVerse Graph & Constellation Mapping
+*   **Timeline**: Month 5 (Active Development).
+*   **Goal**: Build a complete file explorer with breadcrumbs navigation, custom sorting, creating empty files/folders, and larger, highly visible constellation map nodes.
 
 ---
 
 ## PART 3 — SYSTEM ARCHITECTURE MASTERCLASS
 
-### 3.1 Network Topology & Infrastructure Deployment
+### 3.1 Network Topology & Deployment Infrastructure
 
 ```
-                            [ Hugging Face Edge Proxy ]
-                                         │  (Port 443 HTTPS)
-                                         ▼
-                            [ Nginx Reverse Proxy ]
-                                      │  (Port 7860)
-                ┌─────────────────────┴─────────────────────┐
-                │                                           │
-                ▼ (Port 3000)                               ▼ (Port 4000)
-       [ Next.js Frontend ]                       [ Fastify REST API ]
-                                                            │
-                                  ┌─────────────────────────┼────────────────────────┐
-                                  ▼                         ▼                        ▼
-                          [ Redis Cache ]            [ PostgreSQL ]          [ TG Telegram API ]
-                          (Session Lock)             (Metadata DB)           (MTProto Storage)
+                                [ Hugging Face Edge Proxy ]
+                                             │
+                                             ▼ (Port 443 HTTPS)
+                                [ Nginx Reverse Proxy ]
+                                             │
+                                   ┌─────────┴─────────┐
+                     (Port 3000)   ▼                   ▼   (Port 4000)
+                            [ Next.js ]             [ Fastify API ]
+                                 │                         │
+                                 ▼                         ├─────────────────────────┐
+                            (User view)                    ▼                         ▼
+                                                    [ PostgreSQL ]            [ Redis Cache ]
+                                                    (pgvector DB)             (Session lock)
+                                                           │
+                                                           ▼ (MTProto Protocol)
+                                                    [ Telegram DCs ]
 ```
 
-### 3.2 Key Architecture Components
+### 3.2 Key Architecture Services
 
-1.  **Nginx Reverse Proxy**: Binds to port `7860` (Hugging Face’s standard entry point). It routes traffic dynamically: `/v1/` goes to the Fastify API (port `4000`), `/ws` goes to the Fastify WebSocket interface, and all other traffic serves the Next.js static and server-rendered frontend (port `3000`).
-2.  **Fastify REST API**: Highly optimized Node.js framework utilizing fast-json-stringify. It communicates with the PostgreSQL metadata database and utilizes GramJS to coordinate chunk transfers.
-3.  **Redis Cache**: Stores session states, JWT blocklists, and coordinates file-locking mechanisms to prevent concurrent modification of the same filesystem node.
-4.  **PostgreSQL (with `pgvector`)**: Stores user profiles, file metadata (file names, sizes, mime types, parent directory relationships, and Telegram message/attachment identifiers), and 1536-dimensional semantic embeddings of file contents.
-5.  **Telegram MTProto Network**: The underlying object storage network, reached using custom secure API keys and user credentials, preserving end-to-end file persistence.
+#### Next.js Frontend (`apps/web`)
+*   **Purpose**: Renders the glassmorphic desktop web application, file grids, folder breadcrumbs, and interactive React Flow SVG association graph.
+*   **Dependencies**: Zustand, TailwindCSS, React Query, Axios.
+*   **Inputs**: User interaction events, file drags, click-to-sort headers, auth credentials.
+*   **Outputs**: HTTP requests to `/v1/` routes.
+*   **Security Concerns**: Exposing raw JWT tokens in browser storage. Mitigated by using short-lived tokens and secure session stores.
+*   **Failure Scenarios**: API connection timeout. Handled by displaying glassmorphic fallback states and error notifications.
+*   **Monitoring**: Client-side error boundaries and performance reporting.
+*   **Cost & Scaling**: Free static builds served by CDN or cheap node layers.
+
+#### Fastify API Gateway (`apps/api`)
+*   **Purpose**: Manages REST API endpoints, handles database queries, streams files, and interacts with Telegram DCs via MTProto.
+*   **Dependencies**: GramJS, Drizzle ORM, Fastify Multipart, `@fastify/websocket`.
+*   **Inputs**: HTTP payload streams, JSON query strings, WebSocket connections.
+*   **Outputs**: Chunked MTProto file buffers, database updates, JSON responses.
+*   **Security Concerns**: SQL injection, unauthorized endpoint access, credential leakage. Mitigated by utilizing Drizzle ORM parameterized queries, JWT validation, and storing system secrets in secure environment variables.
+*   **Failure Scenarios**: Database connection refusal. Handled by returning structured `503 Service Unavailable` JSON payloads to the client instead of crashing the process.
+*   **Monitoring**: Fastify server logs piped directly to `/tmp/api.log`.
+*   **Cost & Scaling**: Memory scales with active file upload buffers. CPU usage is optimized by using native stream piping.
+
+#### PostgreSQL with pgvector (`packages/db`)
+*   **Purpose**: Stores users, folder paths, file records, and semantic content embeddings.
+*   **Dependencies**: Drizzle ORM, `pgvector` database extension.
+*   **Inputs**: SQL statements, vector embedding arrays (1536 dimensions).
+*   **Outputs**: Database query results, cosine similarity matches.
+*   **Security Concerns**: SQL injection, network socket exposure. Mitigated by using parameterized queries and binding PostgreSQL strictly to `127.0.0.1`.
+*   **Failure Scenarios**: NFS lock file conflicts, WAL checkpoint corruption. Handled by the three-tier database self-healing cascade on startup.
+*   **Monitoring**: Connection statistics and query latency tracking.
+*   **Cost & Scaling**: Storage scales only with text metadata, keeping costs low. Performance is maintained by indexing vector columns with HNSW.
+
+#### Telegram MTProto Storage
+*   **Purpose**: Acts as the physical, infinite storage layer for all file payloads.
+*   **Dependencies**: Telegram Global Data Center Networks.
+*   **Inputs**: Encrypted chunked file buffers, file download requests.
+*   **Outputs**: Media transport references, document attributes, raw file streams.
+*   **Security Concerns**: Plaintext data leakage. Mitigated by MTProto's built-in end-to-end transport encryption.
+*   **Failure Scenarios**: `FLOOD_WAIT` blocks, network timeouts. Handled by automatic chunk retries and throttling.
+*   **Monitoring**: API traffic metrics and request logging.
+*   **Cost & Scaling**: Infinite storage capacity provided at zero cost.
 
 ---
 
 ## PART 4 — COMPLETE REQUEST LIFECYCLE
 
-### 4.1 Detailed Sequence Diagram: File Upload Flow
+### 4.1 Step-by-Step Flow: Secure OTP Authentication
 
 ```mermaid
 sequenceDiagram
@@ -159,108 +237,191 @@ sequenceDiagram
     actor User as User Browser
     participant Nginx as Nginx Proxy
     participant API as Fastify API
-    participant DB as PostgreSQL
-    participant Redis as Redis Queue
-    participant TG as Telegram DC
+    participant Redis as Redis Cache
+    participant TG as Telegram API
 
-    User->>Nginx: POST /v1/files/upload (multipart stream)
-    Nginx->>API: Proxy Upload Stream
-    API->>Redis: Lock Session (avoid write conflict)
-    API->>API: Slice Stream into Chunks (max 512KB)
-    loop For Every File Chunk
-        API->>TG: upload.saveBigFilePart(file_id, part_index, bytes)
-        TG-->>API: ACK (200 OK)
+    User->>Nginx: POST /v1/auth/send-otp { email }
+    Nginx->>API: Route to /auth/send-otp
+    API->>API: Validate email structure
+    API->>Redis: Generate & cache numeric OTP (expiry 5 min)
+    API->>TG: Send OTP via Telegram Bot/Channel
+    TG-->>API: Message Delivered ACK
+    API-->>Nginx: 200 OK { success: true }
+    Nginx-->>User: 200 OK (Renders OTP Input Modal)
+    
+    User->>Nginx: POST /v1/auth/verify { email, otp }
+    Nginx->>API: Route to /auth/verify
+    API->>Redis: Fetch cached OTP for email
+    alt OTP Matches
+        API->>API: Generate short-lived JWT (signed with JWT_SECRET)
+        API-->>Nginx: 200 OK { token, user }
+        Nginx-->>User: 200 OK (Stores JWT in Zustand store, routes to /drive)
+    else OTP Mismatch / Expired
+        API-->>Nginx: 401 Unauthorized { error: 'Invalid OTP' }
+        Nginx-->>User: 401 Unauthorized (Shows error notification)
     end
-    API->>TG: messages.sendMedia(Saved Messages, UploadedFile)
-    TG-->>API: Returns Telegram Document Object (AccessHash, Id)
-    API->>DB: Insert File Record (name, type, size, TG message_id)
-    DB-->>API: Saved Record Confirmation
-    API->>Redis: Unlock Session
-    API-->>Nginx: Returns 201 Created (JSON Metadata)
-    Nginx-->>User: Returns 201 Created
 ```
 
-### 4.2 Lifecycle Perspectives
+#### Multi-Dimensional Perspectives: OTP Flow
+*   **User Perspective**: Types in their email, receives a login code on Telegram, enters the code on the web interface, and is redirected to their personal drive dashboard.
+*   **Developer Perspective**: The frontend Zustand store dispatches a verification action and saves the returned JWT. The backend auth routes handle rate-limiting and token signatures.
+*   **DevOps Perspective**: The Nginx proxy handles SSL termination and forwards clean HTTP requests to the Fastify service.
+*   **Security Perspective**: The OTP code is saved in Redis with a strict 5-minute expiration window. All JWT tokens are signed using a robust 256-bit `JWT_SECRET` key.
 
-*   **User Perspective**: Drags a file to the browser. A progress bar updates dynamically. Within seconds, the file appears in the active directory with an automatically generated AI summary and network connections.
-*   **Developer Perspective**: The frontend dispatches a `multipart/form-data` request. The API uses a custom pipeline stream that processes input bytes without reading the entire file into server memory, protecting against Out-of-Memory (OOM) crashes.
-*   **DevOps Perspective**: Traffic flows cleanly through Nginx. If the backend fails to connect to Redis or Postgres, custom middleware intercepts the request and serves a structured fallback instead of crashing the system.
-*   **Security Perspective**: All file transfers verify the incoming `Authorization: Bearer <JWT>` token. The Telegram communication operates strictly over TLS-encrypted MTProto connections directly to Telegram's data centers.
+---
+
+### 4.2 Step-by-Step Flow: Advanced File Upload Pipeline
+
+```
+  ┌──────────────┐          ┌──────────────┐          ┌──────────────┐
+  │ User Browser │          │ Fastify API  │          │ Telegram DC  │
+  └──────┬───────┘          └──────┬───────┘          └──────┬───────┘
+         │                         │                         │
+         │── POST /files/upload ──►│                         │
+         │   (Stream file bytes)   │── Slice into 512KB ────►│
+         │                         │   chunks & pipe buffer  │
+         │                         │                         │
+         │                         │◄── Save parts response ─│
+         │                         │                         │
+         │                         │── messages.sendMedia ──►│
+         │                         │   (Saved Messages)      │
+         │                         │                         │
+         │                         │◄── Document metadata ───│
+         │                         │                         │
+         │                         │── Save to Postgres ────►│
+         │                         │                         │
+         │◄── 201 File Created ────│                         │
+```
+
+#### Multi-Dimensional Perspectives: Upload Pipeline
+*   **User Perspective**: Drags a document into the drop zone. A progress bar updates in real time, and the new file instantly appears in their current folder.
+*   **Developer Perspective**: The frontend slices files larger than 10MB and uploads them sequentially or streamingly to `/v1/files/upload`. The backend routes the data stream directly to Telegram's servers without reading the entire file into memory, preventing container memory overflows.
+*   **Database Perspective**: The database writes a new row containing the virtual folder structure, size, name, and the returned Telegram attachment and message ID references.
+*   **DevOps Perspective**: Nginx is configured with `client_max_body_size 2G` to support large uploads.
+*   **QA Perspective**: Unit tests verify that uploading files with invalid session tokens returns an immediate `401 Unauthorized` response.
 
 ---
 
 ## PART 5 — FRONTEND ENGINEERING BIBLE
 
-### 5.1 Project Layout & Configuration
+### 5.1 Monorepo Folder Structure
 
 ```
 apps/web/
 ├── public/
+│   ├── favicon.ico
+│   └── fonts/
 ├── src/
 │   ├── app/
 │   │   ├── drive/
 │   │   │   ├── starred/
+│   │   │   │   └── page.tsx      # Starred/Favorite files view
 │   │   │   ├── shared/
+│   │   │   │   └── page.tsx      # Shared files view
 │   │   │   ├── trash/
-│   │   │   └── page.tsx      # Main Explorer Interface
-│   │   ├── layout.tsx        # Shell & Themes
-│   │   └── page.tsx          # Landing & Login
+│   │   │   │   └── page.tsx      # Deleted files (Restore/Purge actions)
+│   │   │   ├── layout.tsx        # Dashboard shell with sidebar toggles
+│   │   │   └── page.tsx          # Main file grid and folder explorer
+│   │   ├── layout.tsx            # Global providers, fonts, and HTML headers
+│   │   └── page.tsx              # Landing page and login modal
 │   ├── components/
 │   │   └── drive/
-│   │       ├── AssociationMap.tsx  # Dynamic SVG Graph
-│   │       ├── FileGrid.tsx        # File Navigation Row Actions
-│   │       ├── Sidebar.tsx         # Collapsible Sidebar Panel
-│   │       ├── StorageBar.tsx      # Inline Storage Progress
-│   │       └── UploadZone.tsx      # Drag & Drop Zone
+│   │       ├── AssociationMap.tsx  # Force-directed SVG WebVerse graph
+│   │       ├── FileGrid.tsx        # File rows with context actions
+│   │       ├── Sidebar.tsx         # Collapsible sidebar panel
+│   │       ├── StorageBar.tsx      # Inline storage progress bar
+│   │       └── UploadZone.tsx      # Compact file dropzone
 │   ├── lib/
-│   │   └── api.ts            # Client Axios Config
+│   │   └── api.ts                # Client Axios config with interceptors
 │   └── stores/
-│       └── auth.ts           # Zustand Authentication Store
+│       └── auth.ts               # Zustand store for authentication state
 ```
 
-### 5.2 Responsive & Modern CSS Tokens
-
-The frontend uses Vanilla CSS custom properties integrated with Tailwind classes to establish a premium, glassy dark-mode design:
+### 5.2 Responsive Glassmorphic CSS Implementation
+To achieve a premium, state-of-the-art interface that feels responsive and responsive under all screen resolutions:
 
 ```css
-:root {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-blur: 16px;
-  --accent-purple: #8b5cf6;
-  --accent-teal: #14b8a6;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@layer base {
+  body {
+    @apply bg-zinc-950 text-zinc-100 antialiased font-sansSelection;
+  }
 }
 
-.glass {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* Glassmorphism Design System Utility Tokens */
+.glass-panel {
+  background: rgba(18, 18, 24, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.3s ease, background 0.3s ease;
 }
+
+.glass-panel:hover {
+  background: rgba(18, 18, 24, 0.55);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.glow-purple {
+  filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.25));
+}
+```
+
+### 5.3 Core Zustand State Management Store
+Our authentication store manages user sessions and API tokens, handling automatic login redirects:
+
+```typescript
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+
+interface User {
+  id: string
+  email: string
+  createdAt: string
+}
+
+interface AuthState {
+  token: string | null
+  user: User | null
+  setAuth: (token: string, user: User) => void
+  clearAuth: () => void
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      token: null,
+      user: null,
+      setAuth: (token, user) => set({ token, user }),
+      clearAuth: () => set({ token: null, user: null }),
+    }),
+    {
+      name: 'televerse-auth-storage',
+    }
+  )
+)
 ```
 
 ---
 
 ## PART 6 — BACKEND ENGINEERING BIBLE
 
-### 6.1 Unified Fastify Route Architecture
-
-The Fastify application maps endpoints cleanly across distinct controllers:
+### 6.1 Unified Fastify REST Server Route Configurations
 
 ```
-Fastify Server (Port 4000)
+Fastify Gateway Services
 ├── /v1/auth/
-│   ├── POST /send-otp    --> Transmits verification code
-│   └── POST /verify      --> Generates secure JSON Web Token
+│   ├── POST /send-otp    --> Generates and caches verification code
+│   └── POST /verify      --> Verifies credentials and generates JWT
 ├── /v1/files/
-│   ├── GET /             --> Lists metadata with sort parameters
-│   ├── POST /upload      --> Slices and streams payloads to Telegram
-│   ├── PATCH /:id/star   --> Toggles favorites
-│   └── DELETE /:id/purge --> Soft-deletes and triggers MTProto purge
+│   ├── GET /             --> Lists metadata with sort and folder options
+│   ├── POST /upload      --> Slices and streams payload stream to Telegram
+│   ├── PATCH /:id/star   --> Toggles file favorite status
+│   └── DELETE /:id/purge --> Soft-deletes and removes from MTProto
 └── /v1/admin/
     ├── GET /logs         --> Streams internal runtime system logs
     └── POST /restart     --> Triggers detached process hot-swaps
