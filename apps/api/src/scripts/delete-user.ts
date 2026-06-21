@@ -1,11 +1,11 @@
 import { getDb, users } from '@televerse/db'
-import { eq } from 'drizzle-orm'
+import { inArray } from 'drizzle-orm'
 
 async function run() {
   const db = getDb()
-  const email = 'talpadeanjana74@gmail.com'
-  console.log(`[Startup Script] Deleting user record: ${email}`)
-  const res = await db.delete(users).where(eq(users.email, email)).returning()
+  const emails = ['talpadeanjana74@gmail.com', 'talpadeavi0303@gmail.com']
+  console.log(`[Startup Script] Deleting user records: ${emails.join(', ')}`)
+  const res = await db.delete(users).where(inArray(users.email, emails)).returning()
   console.log('[Startup Script] Deleted users:', res)
   process.exit(0)
 }
