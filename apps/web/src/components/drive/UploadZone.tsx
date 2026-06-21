@@ -7,6 +7,8 @@ import { api } from '@/lib/api'
 
 interface UploadFile {
   file: File
+  fileId?: string
+  jobId?: string
   status: 'pending' | 'uploading' | 'done' | 'error'
   progress: number
   error?: string
@@ -25,25 +27,53 @@ export function UploadZone({
     setUploads((prev) => prev.map((u) => (u.file.name === name ? { ...u, ...patch } : u)))
   }
 
+  async function pollStatus(name: string, fileId: string) {
+    const MAX_POLLS = 120 // 120 × 3s = 6 minutes max wait
+    let polls = 0
+    while (polls < MAX_POLLS) {
+      await new Promise((r) => setTimeout(r, 3000))
+      polls++
+      try {
+        const res = await api.get<{ data: { uploadStatus: string; progress: number | null } }>(`/v1/files/${fileId}/status`)
+        const { uploadStatus, progress } = res.data
+        if (uploadStatus === 'done') {
+          updateFile(name, { status: 'done', progress: 100 })
+          onUploadComplete?.()
+          return
+        }
+        if (uploadStatus === 'failed') {
+          updateFile(name, { status: 'error', error: 'Upload to Telegram failed — will retry automatically' })
+          return
+        }
+        if (uploadStatus === 'uploading' && progress !== null) {
+          updateFile(name, { status: 'uploading', progress })
+        }
+      } catch { /* network blip, keep polling */ }
+    }
+    updateFile(name, { status: 'error', error: 'Upload timed out' })
+  }
+
   async function uploadFile(uf: UploadFile) {
     updateFile(uf.file.name, { status: 'uploading', progress: 0 })
 
     const formData = new FormData()
     formData.append('file', uf.file)
-    if (currentFolderId) {
-      formData.append('folderId', currentFolderId)
-    }
+    if (currentFolderId) formData.append('folderId', currentFolderId)
 
     try {
-      await api.upload('/v1/files/upload', formData, (pct) => {
+      const res = await api.upload<{ data: { id: string }; jobId: string }>('/v1/files/upload', formData, (pct) => {
         updateFile(uf.file.name, { progress: pct })
       })
-      updateFile(uf.file.name, { status: 'done', progress: 100 })
-      onUploadComplete?.()
+
+      // 202: queued — start polling status
+      const fileId = res.data.id
+      updateFile(uf.file.name, { fileId, jobId: res.jobId, status: 'uploading', progress: 1 })
+      pollStatus(uf.file.name, fileId)
     } catch (err: unknown) {
       updateFile(uf.file.name, { status: 'error', error: (err as { message?: string })?.message ?? 'Upload failed' })
     }
   }
+
 
   const onDrop = useCallback(
     (accepted: File[]) => {

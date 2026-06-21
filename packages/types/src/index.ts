@@ -117,6 +117,7 @@ export type WSEventType =
   | 'upload:progress'
   | 'upload:complete'
   | 'upload:error'
+  | 'upload:flood_wait'
   | 'file:deleted'
   | 'session:expired'
   | 'ping'

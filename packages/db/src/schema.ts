@@ -15,6 +15,7 @@ import { relations, sql } from 'drizzle-orm'
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 export const planEnum = pgEnum('plan', ['free', 'pro'])
+export const uploadStatusEnum = pgEnum('upload_status', ['pending', 'uploading', 'done', 'failed'])
 export const oauthScopeEnum = pgEnum('oauth_scope', [
   'files.read',
   'files.write',
@@ -76,6 +77,11 @@ export const files = pgTable(
     isStarred: boolean('is_starred').default(false).notNull(),
     isShared: boolean('is_shared').default(false),
     version: integer('version').default(1),
+    // Async upload tracking
+    uploadStatus: uploadStatusEnum('upload_status').default('done').notNull(),
+    bullJobId: text('bull_job_id'),
+    // AI tags stored inline for fast list queries (no JOIN needed)
+    aiTags: text('ai_tags').array(),
   },
   (t) => ({
     idxFilesUserId: index('idx_files_user_id').on(t.userId),

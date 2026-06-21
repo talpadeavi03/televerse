@@ -4,9 +4,7 @@ import { getDb, files, folders, users } from '@televerse/db'
 import { eq, and, isNull, ilike, desc, sql } from 'drizzle-orm'
 import { authenticate } from '../middleware/auth.js'
 import { TelegramService } from '../services/telegram.js'
-import { AIService } from '../services/ai.js'
 import { sha256 } from '@televerse/shared'
-import { wsManager } from '../services/wsManager.js'
 
 const listQuerySchema = z.object({
   folderId: z.string().uuid().optional(),
@@ -23,7 +21,6 @@ const listQuerySchema = z.object({
 export const filesRoutes: FastifyPluginAsync = async (app) => {
   const db = getDb()
   const tg = new TelegramService()
-  const ai = new AIService()
 
   // GET /v1/files
   app.get('/', { preHandler: authenticate }, async (req) => {
@@ -63,7 +60,7 @@ export const filesRoutes: FastifyPluginAsync = async (app) => {
     return { data: file }
   })
 
-  // POST /v1/files/upload
+  // POST /v1/files/upload  →  202 Accepted (async queue pattern)
   app.post('/upload', { preHandler: authenticate }, async (req, reply) => {
     const payload = req.user as { sub: string }
     const data = await req.file()
@@ -87,14 +84,7 @@ export const filesRoutes: FastifyPluginAsync = async (app) => {
 
     const folderId = (data.fields['folderId'] as { value?: string } | undefined)?.value ?? null
 
-    // Upload to Telegram
-    const msgId = await tg.uploadFile(user.telegramSessionEncrypted, {
-      buffer,
-      filename: data.filename,
-      mimeType: data.mimetype,
-      onProgress: (progress) => wsManager.sendToUser(payload.sub, { type: 'upload:progress', payload: progress, ts: Date.now() }),
-    })
-
+    // 1. Insert DB row immediately with status 'pending'
     const [file] = await db.insert(files).values({
       userId: payload.sub,
       folderId,
@@ -102,19 +92,77 @@ export const filesRoutes: FastifyPluginAsync = async (app) => {
       sizeBytes: BigInt(buffer.length),
       mimeType: data.mimetype,
       sha256Hash: hash,
-      tgMessageId: BigInt(msgId),
+      uploadStatus: 'pending',
     }).returning()
 
-    // Update storage usage
-    await db.update(users).set({ storageUsedBytes: sql`storage_used_bytes + ${BigInt(buffer.length)}` }).where(eq(users.id, payload.sub))
+    // 2. Update storage usage counter
+    await db.update(users)
+      .set({ storageUsedBytes: sql`storage_used_bytes + ${BigInt(buffer.length)}` })
+      .where(eq(users.id, payload.sub))
 
-    // Async AI tagging
-    ai.tagFile(file!.id, buffer, data.mimetype).catch(console.error)
+    // 3. Enqueue BullMQ upload job (non-blocking)
+    const { getUploadQueue } = await import('../queues/index.js')
+    const job = await getUploadQueue().add(
+      'upload',
+      {
+        fileId: file!.id,
+        userId: payload.sub,
+        encryptedSession: user.telegramSessionEncrypted,
+        buffer: Array.from(buffer),   // JSON-serialisable
+        filename: data.filename,
+        mimeType: data.mimetype,
+      },
+      { jobId: `upload:${file!.id}` },
+    )
 
-    wsManager.sendToUser(payload.sub, { type: 'upload:complete', payload: { fileId: file!.id }, ts: Date.now() })
+    // 4. Store bull job ID for status polling
+    await db.update(files)
+      .set({ bullJobId: job.id ?? null })
+      .where(eq(files.id, file!.id))
 
-    return reply.status(201).send({ data: file })
+    // 5. Return 202 immediately — client polls /status or listens on WebSocket
+    return reply.status(202).send({
+      data: { ...file, uploadStatus: 'pending' },
+      jobId: job.id,
+      message: 'Upload queued — use jobId to track progress via WebSocket or GET /v1/files/:id/status',
+    })
   })
+
+  // GET /v1/files/:id/status — poll upload job progress
+  app.get('/:id/status', { preHandler: authenticate }, async (req, reply) => {
+    const { id } = req.params as { id: string }
+    const payload = req.user as { sub: string }
+
+    const [file] = await db.select({
+      id: files.id,
+      uploadStatus: files.uploadStatus,
+      bullJobId: files.bullJobId,
+      tgMessageId: files.tgMessageId,
+    }).from(files).where(and(eq(files.id, id), eq(files.userId, payload.sub))).limit(1)
+
+    if (!file) return reply.status(404).send({ error: 'File not found', code: 'NOT_FOUND', statusCode: 404 })
+
+    // Enrich with live BullMQ progress if job is still active
+    let jobProgress: number | null = null
+    if (file.bullJobId && (file.uploadStatus === 'pending' || file.uploadStatus === 'uploading')) {
+      try {
+        const { getUploadQueue } = await import('../queues/index.js')
+        const job = await getUploadQueue().getJob(file.bullJobId)
+        if (job) jobProgress = (job.progress as number) ?? 0
+      } catch { /* job may have been cleaned up */ }
+    }
+
+    return {
+      data: {
+        fileId: file.id,
+        uploadStatus: file.uploadStatus,
+        progress: jobProgress,
+        tgMessageId: file.tgMessageId?.toString() ?? null,
+      }
+    }
+  })
+
+
 
   // DELETE /v1/files/:id
   app.delete('/:id', { preHandler: authenticate }, async (req, reply) => {

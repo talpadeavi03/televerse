@@ -25,6 +25,7 @@
     "@televerse/db": "workspace:*",
     "@televerse/shared": "workspace:*",
     "@televerse/types": "workspace:*",
+    "bullmq": "^5.79.0",
     "drizzle-orm": "^0.32.0",
     "fastify": "^4.28.0",
     "gramjs": "npm:telegram@^2.26.22",
@@ -33,9 +34,9 @@
     "openai": "^6.39.0",
     "p-limit": "^6.1.0",
     "postgres": "^3.4.0",
+    "tsx": "^4.16.0",
     "ws": "^8.17.0",
-    "zod": "^3.23.0",
-    "tsx": "^4.16.0"
+    "zod": "^3.23.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

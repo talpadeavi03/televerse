@@ -20,6 +20,9 @@ import { telegramRoutes } from './routes/telegram.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { env } from './config/env.js'
 import { getRedis } from './config/redis.js'
+import { closeQueues } from './queues/index.js'
+import { createUploadWorker } from './queues/uploadWorker.js'
+import { createAiTagWorker } from './queues/aiTagWorker.js'
 
 // Polyfill JSON.stringify to natively support BigInt serialization to prevent Fastify serialization 500 errors
 ;(BigInt.prototype as any).toJSON = function () {
@@ -110,5 +113,21 @@ export async function buildApp() {
   await app.register(storageRoutes, { prefix: '/v1/storage' })
   await app.register(wsRoutes, { prefix: '/ws' })
 
+  // ─── BullMQ Workers ───────────────────────────────────────────────────────
+  // Skip in test env to avoid Redis connection noise
+  if (env.NODE_ENV !== 'test') {
+    const uploadWorker = createUploadWorker()
+    const aiTagWorker = createAiTagWorker()
+    app.log.info('✅ BullMQ workers started (upload + ai-tag)')
+
+    app.addHook('onClose', async () => {
+      await uploadWorker.close()
+      await aiTagWorker.close()
+      await closeQueues()
+      app.log.info('BullMQ workers shut down cleanly')
+    })
+  }
+
   return app
 }
+
