@@ -9,8 +9,8 @@ export function getQueueConnectionOpts() {
 
 // ─── Queue names ─────────────────────────────────────────────────────────────
 export const QUEUE_NAMES = {
-  UPLOAD: 'televerse:upload',
-  AI_TAG: 'televerse:ai-tag',
+  UPLOAD: 'televerse-upload',
+  AI_TAG: 'televerse-ai-tag',
 } as const
 
 // ─── Queue singletons ────────────────────────────────────────────────────────

@@ -34,17 +34,22 @@ function getFileCategory(mimeType: string): string {
 }
 
 export class AIService {
-  private client: OpenAI | Groq
-  private modelName: string
+  private client: OpenAI | Groq | null = null
+  private modelName: string = ''
   private db = getDb()
+  private enabled = false
 
   constructor() {
     if (env.OPENAI_API_KEY) {
       this.client = new OpenAI({ apiKey: env.OPENAI_API_KEY })
       this.modelName = 'gpt-4o-mini'
-    } else {
-      this.client = new Groq({ apiKey: env.GROQ_API_KEY! })
+      this.enabled = true
+    } else if (env.GROQ_API_KEY) {
+      this.client = new Groq({ apiKey: env.GROQ_API_KEY })
       this.modelName = 'llama-3.3-70b-versatile'
+      this.enabled = true
+    } else {
+      console.warn('⚠️ AIService is disabled because neither OPENAI_API_KEY nor GROQ_API_KEY was provided.')
     }
   }
 
@@ -56,7 +61,7 @@ export class AIService {
     const tags = [getFileCategory(mimeType)]
     let summary: string | null = null
 
-    if (isTextExtractable(mimeType)) {
+    if (this.enabled && this.client && isTextExtractable(mimeType)) {
       const text = extractText(buffer, mimeType)
       if (text.length > 50) {
         try {
@@ -118,6 +123,11 @@ export class AIService {
     fileRows: { name: string; mimeType: string | null }[],
     summaries: { summary: string | null; tags: string[] | null }[],
   ): AsyncIterable<string> {
+    if (!this.enabled || !this.client) {
+      yield 'AI feature is disabled. Please configure your OPENAI_API_KEY or GROQ_API_KEY environment variable.'
+      return
+    }
+
     const context = fileRows
       .map((f, i) => `File: ${f.name}\nSummary: ${summaries[i]?.summary ?? 'No summary'}\nTags: ${summaries[i]?.tags?.join(', ') ?? 'none'}`)
       .join('\n\n')
