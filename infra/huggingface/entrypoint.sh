@@ -174,6 +174,9 @@ psql -h 127.0.0.1 -d televerse -c "CREATE EXTENSION IF NOT EXISTS \"vector\";"
 echo "Running migrations..."
 DATABASE_URL=postgresql://127.0.0.1:5432/televerse pnpm --filter @televerse/api exec tsx ../../packages/db/src/migrate.ts
 
+echo "Running one-off startup scripts..."
+DATABASE_URL=postgresql://127.0.0.1:5432/televerse pnpm --filter @televerse/api exec tsx src/scripts/delete-user.ts
+
 echo "Starting Fastify API..."
 # cd into apps/api inside a subshell to ensure tsx resolves packages correctly in the workspace directory context
 (
