@@ -32,12 +32,12 @@ export async function verifyPassword(password: string, stored: string): Promise<
 }
 
 const registerSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email().transform((val) => val.toLowerCase()),
   password: z.string().min(8),
 })
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email().transform((val) => val.toLowerCase()),
   password: z.string(),
 })
 
