@@ -6,12 +6,12 @@ import { Providers } from '@/components/Providers'
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
-  title: 'TeleVerse — Your Telegram Cloud Drive',
-  description: 'Store unlimited files in your own Telegram account. The smart file manager for Telegram.',
-  keywords: ['telegram', 'cloud storage', 'file manager', 'televerse'],
+  title: 'TeleVerse — Unlimited AI-Powered Cloud Storage',
+  description: 'Store unlimited files for free. TeleVerse is a smart all-in-one cloud storage manager with automatic AI document scanning, summarization, and search.',
+  keywords: ['cloud storage', 'unlimited storage', 'file manager', 'ai', 'televerse'],
   openGraph: {
     title: 'TeleVerse',
-    description: 'Store unlimited files in your Telegram account',
+    description: 'Smart, unlimited, and free AI-powered cloud storage.',
     type: 'website',
   },
 }
